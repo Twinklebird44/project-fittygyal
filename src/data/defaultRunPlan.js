@@ -3,18 +3,18 @@ export const defaultRunPlan = {
     name: "Easy Run",
     type: "easy",
     effort: "Low - Conversational pace",
-    distance: 5,
+    distance: 6,
     notes: "Recovery run to start the week",
     segments: []
   },
   Tuesday: {
     name: "Interval Training",
     type: "intervals",
-    effort: "High - 80-90% max effort on fast segments",
-    distance: 6,
+    effort: "High - 5km pace or faster",
+    distance: 5.5,
     notes: "Focus on speed work",
     segments: [
-      { distance: "1 km", type: "warmup", description: "Easy warmup jog" },
+      { distance: "1.5km", type: "warmup", description: "Easy warmup jog" },
       { distance: "400m", type: "fast", description: "Fast pace" },
       { distance: "200m", type: "recovery", description: "Walk/jog recovery" },
       { distance: "400m", type: "fast", description: "Fast pace" },
@@ -22,35 +22,39 @@ export const defaultRunPlan = {
       { distance: "400m", type: "fast", description: "Fast pace" },
       { distance: "200m", type: "recovery", description: "Walk/jog recovery" },
       { distance: "400m", type: "fast", description: "Fast pace" },
-      { distance: "1 km", type: "cooldown", description: "Easy cooldown jog" },
+      { distance: "200m", type: "recovery", description: "Walk/jog recovery" },
+      { distance: "400m", type: "fast", description: "Fast pace" },
+      { distance: "200m", type: "recovery", description: "Walk/jog recovery" },
+      { distance: "400m", type: "fast", description: "Fast pace" },
+      { distance: "600m", type: "cooldown", description: "Easy cool down jog" },
     ]
   },
   Wednesday: {
-    name: "Rest Day",
-    type: "rest",
-    effort: "None",
-    distance: 0,
-    notes: "Active recovery - stretch or light walk",
-    segments: []
-  },
-  Thursday: {
     name: "Tempo Run",
     type: "tempo",
-    effort: "Medium-High - Comfortably hard",
-    distance: 8,
-    notes: "Sustained effort at threshold pace",
+    effort: "Comfortable Hard Pace",
+    distance: 6,
+    notes: "",
     segments: [
-      { distance: "1 km", type: "warmup", description: "Easy warmup" },
-      { distance: "5 km", type: "tempo", description: "Tempo pace - comfortably hard" },
-      { distance: "1 km", type: "cooldown", description: "Easy cooldown" },
+      { distance: "1 km", type: "warmup", description: "" },
+      { distance: "4 km", type: "fast", description: "" },
+      { distance: "1 km", type: "cooldown", description: "" },
     ]
+  },
+  Thursday: {
+    name: "Easiest Run",
+    type: "easy",
+    effort: "Low - Conversational Pace",
+    distance: 5,
+    notes: "",
+    segments: []
   },
   Friday: {
     name: "Easy Run",
     type: "easy",
-    effort: "Low - Recovery pace",
-    distance: 4,
-    notes: "Short recovery run before weekend long run",
+    effort: "Low - Conversational Pace",
+    distance: 6,
+    notes: "Add 0.5-1 km every 1-2 weeks",
     segments: []
   },
   Saturday: {
