@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Pacifico&display=swap');
+
+:root {
+  /* Sunset palette */
+  --sunset-orange: #ff6b35;
+  --sunset-coral: #ff8c61;
+  --sunset-peach: #ffb088;
+  --sunset-pink: #ff5e78;
+  --sunset-magenta: #e8457c;
+  --sunset-deep: #c73866;
+  --sunset-purple: #9b4d96;
+  
+  /* Backgrounds */
+  --bg-primary: #fff8f5;
+  --bg-secondary: #fff0eb;
+  --bg-card: #ffffff;
+  --bg-card-hover: #fffaf8;
+  
+  /* Main accents */
+  --accent: #ff6b35;
+  --accent-pink: #ff5e78;
+  --accent-glow: rgba(255, 107, 53, 0.2);
+  
+  /* Warm neutrals */
+  --gold: #ffb347;
+  --gold-light: #ffd089;
+  
+  /* Text colors */
+  --text-primary: #3d2c2c;
+  --text-secondary: #6b5252;
+  --text-muted: #9a8585;
+  
+  /* Utilities */
+  --border: #ffe4db;
+  --success: #6bba7a;
+  --danger: #ff5e78;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(ellipse at 0% 0%, rgba(255, 107, 53, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 0%, rgba(255, 94, 120, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(255, 179, 71, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, #fff8f5 0%, #fff0eb 50%, #ffe8e0 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input, select {
+  font-family: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--sunset-coral), var(--sunset-pink));
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--sunset-orange), var(--sunset-magenta));
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes sunsetGlow {
+  0%, 100% { 
+    box-shadow: 0 4px 20px rgba(255, 107, 53, 0.2);
+  }
+  50% { 
+    box-shadow: 0 4px 30px rgba(255, 94, 120, 0.3);
+  }
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
