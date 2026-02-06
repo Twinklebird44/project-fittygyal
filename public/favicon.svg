@@ -1,11 +1,37 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <defs>
-    <linearGradient id="sunsetGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#ff6b35"/>
-      <stop offset="50%" style="stop-color:#ff5e78"/>
-      <stop offset="100%" style="stop-color:#e8457c"/>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF9A56"/>
+      <stop offset="50%" stop-color="#FF6B8A"/>
+      <stop offset="100%" stop-color="#E8457C"/>
+    </linearGradient>
+    <linearGradient id="sunFill" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#FFE8D6"/>
     </linearGradient>
   </defs>
-  <circle cx="50" cy="50" r="45" fill="url(#sunsetGrad)"/>
-  <text x="50" y="62" font-size="40" text-anchor="middle" fill="white">☀</text>
+
+  <!-- Rounded square background with pink-orange gradient -->
+  <rect x="2" y="2" width="96" height="96" rx="20" ry="20" fill="url(#bg)"/>
+
+  <!-- Sun body -->
+  <circle cx="50" cy="50" r="16" fill="url(#sunFill)" opacity="0.95"/>
+
+  <!-- Sun rays -->
+  <!-- Top -->
+  <line x1="50" y1="12" x2="50" y2="26" stroke="white" stroke-width="4" stroke-linecap="round" opacity="0.9"/>
+  <!-- Bottom -->
+  <line x1="50" y1="74" x2="50" y2="88" stroke="white" stroke-width="4" stroke-linecap="round" opacity="0.9"/>
+  <!-- Left -->
+  <line x1="12" y1="50" x2="26" y2="50" stroke="white" stroke-width="4" stroke-linecap="round" opacity="0.9"/>
+  <!-- Right -->
+  <line x1="74" y1="50" x2="88" y2="50" stroke="white" stroke-width="4" stroke-linecap="round" opacity="0.9"/>
+  <!-- Top-Right -->
+  <line x1="73" y1="27" x2="82" y2="18" stroke="white" stroke-width="3.5" stroke-linecap="round" opacity="0.85"/>
+  <!-- Top-Left -->
+  <line x1="27" y1="27" x2="18" y2="18" stroke="white" stroke-width="3.5" stroke-linecap="round" opacity="0.85"/>
+  <!-- Bottom-Right -->
+  <line x1="73" y1="73" x2="82" y2="82" stroke="white" stroke-width="3.5" stroke-linecap="round" opacity="0.85"/>
+  <!-- Bottom-Left -->
+  <line x1="27" y1="73" x2="18" y2="82" stroke="white" stroke-width="3.5" stroke-linecap="round" opacity="0.85"/>
 </svg>
