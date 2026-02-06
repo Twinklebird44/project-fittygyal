@@ -11,6 +11,21 @@ import './App.css';
 function App() {
   const [activeTab, setActiveTab] = useState('gym');
 
+  // Prevent mobile browser autofill on all form fields
+  useEffect(() => {
+    const disableAutofill = () => {
+      document.querySelectorAll('input, textarea, select').forEach(el => {
+        if (el.getAttribute('autocomplete') !== 'off') {
+          el.setAttribute('autocomplete', 'off');
+        }
+      });
+    };
+    disableAutofill();
+    const observer = new MutationObserver(disableAutofill);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="app">
       <header className="header">
