@@ -1,16 +1,7 @@
-import { useState, useEffect } from 'react';
-
-const STORAGE_KEY = 'iron-log-running';
+import { useFirestoreDoc } from './useFirestoreDoc';
 
 export function useRunning() {
-  const [runs, setRuns] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(runs));
-  }, [runs]);
+  const { data: runs, setData: setRuns, loading } = useFirestoreDoc('runs', []);
 
   const addRun = (run) => {
     const newRun = {
@@ -41,5 +32,6 @@ export function useRunning() {
     updateRun,
     deleteRun,
     clearAllRuns,
+    loading,
   };
 }

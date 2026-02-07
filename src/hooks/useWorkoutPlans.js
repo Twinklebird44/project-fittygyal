@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { defaultWorkouts, DAYS_OF_WEEK } from '../data/defaultWorkouts';
-
-const PLANS_STORAGE_KEY = 'fitty-gyal-workout-plans';
-const ACTIVE_PLAN_KEY = 'fitty-gyal-active-plan';
+import { useFirestoreDoc } from './useFirestoreDoc';
 
 // Empty workout template for creating blank plans
 const createEmptyWorkouts = () => {
@@ -16,36 +14,18 @@ const createEmptyWorkouts = () => {
   return emptyWorkouts;
 };
 
+const defaultPlans = [{
+  id: 'default',
+  name: 'Starter Plan',
+  createdAt: new Date().toISOString(),
+  workouts: defaultWorkouts
+}];
+
 export function useWorkoutPlans() {
-  // Initialize with default plan if no plans exist
-  const [plans, setPlans] = useState(() => {
-    const saved = localStorage.getItem(PLANS_STORAGE_KEY);
-    if (saved) {
-      return JSON.parse(saved);
-    }
-    // Create initial default plan
-    return [{
-      id: 'default',
-      name: 'Starter Plan',
-      createdAt: new Date().toISOString(),
-      workouts: defaultWorkouts
-    }];
-  });
+  const { data: plans, setData: setPlans, loading: plansLoading } = useFirestoreDoc('workoutPlans', defaultPlans);
+  const { data: activePlanId, setData: setActivePlanId, loading: activeLoading } = useFirestoreDoc('activePlanId', 'default');
 
-  const [activePlanId, setActivePlanId] = useState(() => {
-    const saved = localStorage.getItem(ACTIVE_PLAN_KEY);
-    return saved || 'default';
-  });
-
-  // Save plans to localStorage
-  useEffect(() => {
-    localStorage.setItem(PLANS_STORAGE_KEY, JSON.stringify(plans));
-  }, [plans]);
-
-  // Save active plan ID to localStorage
-  useEffect(() => {
-    localStorage.setItem(ACTIVE_PLAN_KEY, activePlanId);
-  }, [activePlanId]);
+  const loading = plansLoading || activeLoading;
 
   // Get the current active plan
   const activePlan = plans.find(p => p.id === activePlanId) || plans[0];
@@ -125,6 +105,7 @@ export function useWorkoutPlans() {
     updateActivePlanWorkouts,
     renamePlan,
     deletePlan,
-    duplicatePlan
+    duplicatePlan,
+    loading
   };
 }
