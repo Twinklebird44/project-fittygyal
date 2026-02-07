@@ -1,88 +1,41 @@
+const restDay = {
+  name: "Rest Day",
+  type: "rest",
+  effort: "None",
+  distance: 0,
+  notes: "",
+  segments: []
+};
+
 export const defaultRunPlan = {
-  Monday: {
-    name: "Easy Run",
-    type: "easy",
-    effort: "Low - Conversational pace",
-    distance: 6,
-    notes: "Recovery run to start the week",
-    segments: []
-  },
-  Tuesday: {
-    name: "Interval Training",
-    type: "intervals",
-    effort: "High - 5km pace or faster",
-    distance: 5.5,
-    notes: "Focus on speed work",
-    segments: [
-      { distance: "1.5km", type: "warmup", description: "Easy warmup jog" },
-      { distance: "400m", type: "fast", description: "Fast pace" },
-      { distance: "200m", type: "recovery", description: "Walk/jog recovery" },
-      { distance: "400m", type: "fast", description: "Fast pace" },
-      { distance: "200m", type: "recovery", description: "Walk/jog recovery" },
-      { distance: "400m", type: "fast", description: "Fast pace" },
-      { distance: "200m", type: "recovery", description: "Walk/jog recovery" },
-      { distance: "400m", type: "fast", description: "Fast pace" },
-      { distance: "200m", type: "recovery", description: "Walk/jog recovery" },
-      { distance: "400m", type: "fast", description: "Fast pace" },
-      { distance: "200m", type: "recovery", description: "Walk/jog recovery" },
-      { distance: "400m", type: "fast", description: "Fast pace" },
-      { distance: "600m", type: "cooldown", description: "Easy cool down jog" },
-    ]
-  },
-  Wednesday: {
-    name: "Tempo Run",
-    type: "tempo",
-    effort: "Comfortable Hard Pace",
-    distance: 6,
-    notes: "",
-    segments: [
-      { distance: "1 km", type: "warmup", description: "" },
-      { distance: "4 km", type: "fast", description: "" },
-      { distance: "1 km", type: "cooldown", description: "" },
-    ]
-  },
-  Thursday: {
-    name: "Easiest Run",
-    type: "easy",
-    effort: "Low - Conversational Pace",
-    distance: 5,
-    notes: "",
-    segments: []
-  },
-  Friday: {
-    name: "Easy Run",
-    type: "easy",
-    effort: "Low - Conversational Pace",
-    distance: 6,
-    notes: "Add 0.5-1 km every 1-2 weeks",
-    segments: []
-  },
-  Saturday: {
-    name: "Rest Day",
-    type: "rest",
-    effort: "None",
-    distance: 0,
-    notes: "Rest and recover",
-    segments: []
-  },
-  Sunday: {
-    name: "Rest Day",
-    type: "rest",
-    effort: "None",
-    distance: 0,
-    notes: "Full rest day",
-    segments: []
-  }
+  Monday: { ...restDay },
+  Tuesday: { ...restDay },
+  Wednesday: { ...restDay },
+  Thursday: { ...restDay },
+  Friday: { ...restDay },
+  Saturday: { ...restDay },
+  Sunday: { ...restDay },
 };
 
 export const RUN_TYPES = {
+  other: { label: "Custom Name", color: "#C4836E" },
   easy: { label: "Easy", color: "#FFB347" },
   intervals: { label: "Intervals", color: "#FF6B35" },
   tempo: { label: "Tempo", color: "#F7567C" },
   long: { label: "Long Run", color: "#CC3F6E" },
-  rest: { label: "Rest", color: "#D4A5A5" },
+  fartlek: { label: "Fartlek", color: "#E88D67" },
+  hill: { label: "Hill", color: "#D4654A" },
+  progression: { label: "Progression", color: "#B8547A" },
+  sprint: { label: "Sprint", color: "#FF4757" },
+  short: { label: "Short Run", color: "#F5A673" },
+  trail: { label: "Trail", color: "#A8774B" },
+  treadmill: { label: "Treadmill", color: "#D98E73" },
+  warmup: { label: "Warm Up", color: "#FFD5A8" },
+  cooldown: { label: "Cool Down", color: "#E6B09A" },
+  threshold: { label: "Threshold", color: "#C94C60" },
   recovery: { label: "Recovery", color: "#FFCAB0" },
   race: { label: "Race", color: "#99294E" },
+  rest: { label: "Rest", color: "#D4A5A5" },
 };
 
 export const SEGMENT_TYPES = {

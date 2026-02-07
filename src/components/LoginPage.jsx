@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import PrivacyPolicy from './PrivacyPolicy';
+import TermsAndConditions from './TermsAndConditions';
 
 export default function LoginPage() {
+  const [legalPage, setLegalPage] = useState(null);
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -62,6 +65,13 @@ export default function LoginPage() {
     }
   };
 
+  if (legalPage === 'privacy') {
+    return <PrivacyPolicy onBack={() => setLegalPage(null)} />;
+  }
+  if (legalPage === 'terms') {
+    return <TermsAndConditions onBack={() => setLegalPage(null)} />;
+  }
+
   return (
     <div className="login-page">
       <div className="login-container">
@@ -71,13 +81,13 @@ export default function LoginPage() {
               <span className="star">✦</span>
               <span className="star small">✦</span>
             </div>
-            <h1>FITTY GYAL</h1>
+            <h1>FITTY</h1>
             <div className="logo-decoration right">
               <span className="star small">✦</span>
               <span className="star">✦</span>
             </div>
           </div>
-          <p className="login-tagline">Your fitness journey starts here</p>
+          <p className="login-tagline">Your fitness journey starts here 💪</p>
         </div>
 
         <div className="login-tabs">
@@ -176,6 +186,16 @@ export default function LoginPage() {
             Google
           </button>
 
+        </div>
+
+        <div className="login-legal">
+          <button className="legal-link" onClick={() => setLegalPage('privacy')}>
+            Privacy Policy
+          </button>
+          <span className="legal-separator">·</span>
+          <button className="legal-link" onClick={() => setLegalPage('terms')}>
+            Terms & Conditions
+          </button>
         </div>
       </div>
     </div>

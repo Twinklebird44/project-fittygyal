@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import LoginPage from './components/LoginPage';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import TermsAndConditions from './components/TermsAndConditions';
 import { useWorkoutPlans } from './hooks/useWorkoutPlans';
 import { useWorkoutHistory } from './hooks/useWorkoutHistory';
 import { useRunning } from './hooks/useRunning';
@@ -10,9 +12,27 @@ import { DAYS_OF_WEEK, defaultWorkouts } from './data/defaultWorkouts';
 import { RUN_TYPES, SEGMENT_TYPES } from './data/defaultRunPlan';
 import './App.css';
 
+const REST_DAY_EMOJIS = {
+  Monday: '🌞',
+  Tuesday: '🌞',
+  Wednesday: '🌞',
+  Thursday: '🌞',
+  Friday: '🌞',
+  Saturday: '🌞',
+  Sunday: '🌞',
+};
+
 function App() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('gym');
+  const [legalPage, setLegalPage] = useState(null);
+
+  if (legalPage === 'privacy') {
+    return <PrivacyPolicy onBack={() => setLegalPage(null)} />;
+  }
+  if (legalPage === 'terms') {
+    return <TermsAndConditions onBack={() => setLegalPage(null)} />;
+  }
 
   // If not logged in, show login page
   if (!user) {
@@ -27,7 +47,7 @@ function App() {
             <span className="star">✦</span>
             <span className="star small">✦</span>
           </div>
-          <h1>FITTY GYAL</h1>
+          <h1>FITTY</h1>
           <div className="logo-decoration right">
             <span className="star small">✦</span>
             <span className="star">✦</span>
@@ -35,7 +55,7 @@ function App() {
         </div>
         <div className="user-bar">
           <span className="user-greeting">
-            Hey, {user.displayName || user.email?.split('@')[0] || 'Queen'}!
+            Hey, {user.displayName || user.email?.split('@')[0]}!
           </span>
           <button className="btn-logout" onClick={logout}>
             Log Out
@@ -61,6 +81,16 @@ function App() {
       </div>
 
       {activeTab === 'gym' ? <GymSection /> : <RunningSection />}
+
+      <div className="app-legal-footer">
+        <button className="legal-link" onClick={() => setLegalPage('privacy')}>
+          Privacy Policy
+        </button>
+        <span className="legal-separator">·</span>
+        <button className="legal-link" onClick={() => setLegalPage('terms')}>
+          Terms & Conditions
+        </button>
+      </div>
     </div>
   );
 }
@@ -132,10 +162,12 @@ function GymPlanSection({ plansHook }) {
 
   const addExercise = (day, exercise) => {
     const newId = Math.max(0, ...workouts[day].exercises.map(e => e.id)) + 1;
+    const isFirstExercise = workouts[day].exercises.length === 0;
     const newWorkouts = {
       ...workouts,
       [day]: {
         ...workouts[day],
+        name: isFirstExercise ? '' : workouts[day].name,
         exercises: [...workouts[day].exercises, { ...exercise, id: newId }]
       }
     };
@@ -143,11 +175,13 @@ function GymPlanSection({ plansHook }) {
   };
 
   const removeExercise = (day, exerciseId) => {
+    const remainingExercises = workouts[day].exercises.filter(ex => ex.id !== exerciseId);
     const newWorkouts = {
       ...workouts,
       [day]: {
         ...workouts[day],
-        exercises: workouts[day].exercises.filter(ex => ex.id !== exerciseId)
+        name: remainingExercises.length === 0 ? 'Rest Day' : workouts[day].name,
+        exercises: remainingExercises
       }
     };
     updateActivePlanWorkouts(newWorkouts);
@@ -235,59 +269,63 @@ function GymPlanSection({ plansHook }) {
             <div className="day-title">
               <h2>{selectedDay}</h2>
             </div>
-            <div className="day-stats">
-              <div className="stat">
-                <span className="stat-value">{currentDayData.exercises.length}</span>
-                <span className="stat-label">Exercises</span>
+            {currentDayData.exercises.length > 0 && (
+              <div className="day-stats">
+                <div className="stat">
+                  <span className="stat-value">{currentDayData.exercises.length}</span>
+                  <span className="stat-label">Exercises</span>
+                </div>
+                <div className="stat">
+                  <span className="stat-value">
+                    {currentDayData.exercises.reduce((sum, ex) => sum + ex.sets, 0)}
+                  </span>
+                  <span className="stat-label">Total Sets</span>
+                </div>
               </div>
-              <div className="stat">
-                <span className="stat-value">
-                  {currentDayData.exercises.reduce((sum, ex) => sum + ex.sets, 0)}
-                </span>
-                <span className="stat-label">Total Sets</span>
-              </div>
-            </div>
-          </div>
-          <div className="workout-name-row">
-            {editingWorkoutName === selectedDay ? (
-              <>
-                <input
-                  type="text"
-                  className="workout-name-input editing"
-                  value={tempWorkoutName}
-                  onChange={(e) => setTempWorkoutName(e.target.value)}
-                  placeholder="Workout name..."
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') saveWorkoutName();
-                    if (e.key === 'Escape') cancelEditingWorkoutName();
-                  }}
-                />
-                <button className="btn btn-save-name" onClick={saveWorkoutName}>
-                  Save
-                </button>
-                <button className="btn btn-cancel-name" onClick={cancelEditingWorkoutName}>
-                  ✕
-                </button>
-              </>
-            ) : (
-              <>
-                <span className="workout-name-display" onClick={startEditingWorkoutName}>
-                  {currentDayData.name || 'Click to add workout name...'}
-                </span>
-                <button className="btn btn-edit-name" onClick={startEditingWorkoutName}>
-                  Edit
-                </button>
-              </>
             )}
           </div>
+          {currentDayData.exercises.length > 0 && (
+            <div className="workout-name-row">
+              {editingWorkoutName === selectedDay ? (
+                <>
+                  <input
+                    type="text"
+                    className="workout-name-input editing"
+                    value={tempWorkoutName}
+                    onChange={(e) => setTempWorkoutName(e.target.value)}
+                    placeholder="Workout name..."
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') saveWorkoutName();
+                      if (e.key === 'Escape') cancelEditingWorkoutName();
+                    }}
+                  />
+                  <button className="btn btn-save-name" onClick={saveWorkoutName}>
+                    Save
+                  </button>
+                  <button className="btn btn-cancel-name" onClick={cancelEditingWorkoutName}>
+                    ✕
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span className="workout-name-display" onClick={startEditingWorkoutName}>
+                    {currentDayData.name || 'Click to add workout name...'}
+                  </span>
+                  <button className="btn btn-edit-name" onClick={startEditingWorkoutName}>
+                    Edit
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         {currentDayData.exercises.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">🧘‍♀️</div>
-            <h3>Self-Care Day</h3>
-            <p>Rest is part of the journey, queen. Take it easy! 💕</p>
+            <div className="empty-icon">{REST_DAY_EMOJIS[selectedDay] || '😴'}</div>
+            <h3>Rest Day</h3>
+            <p>Rest is part of the journey. Take it easy! 💪</p>
             <button className="btn btn-primary" onClick={() => setShowAddForm(true)}>
               Add Workout Anyway
             </button>
@@ -315,7 +353,7 @@ function GymPlanSection({ plansHook }) {
             <div className="submit-workout-section">
               {justSubmitted ? (
                 <div className="submit-success">
-                  <span>✨</span> Workout logged! You're crushing it, queen! <span>💪</span>
+                  <span>✨</span> Workout logged! You're crushing it! <span>💪</span>
                 </div>
               ) : (
                 <button 
@@ -580,10 +618,12 @@ function GymHistorySection() {
               <span className="stat-value">{history.length}</span>
               <span className="stat-label">Total Workouts</span>
             </div>
-            <div className="stat">
-              <span className="stat-value">{(comparison.current.totalVolume / 1000).toFixed(1)}k</span>
-              <span className="stat-label">KG {getWeekLabel(weekOffset)}</span>
-            </div>
+            {comparison.current.totalVolume > 0 && (
+              <div className="stat">
+                <span className="stat-value">{(comparison.current.totalVolume / 1000).toFixed(1)}k</span>
+                <span className="stat-label">KG {getWeekLabel(weekOffset)}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -923,7 +963,7 @@ function RunPlanSection() {
   const isCompletedToday = completedDays.includes(selectedDay);
 
   // Calculate weekly totals
-  const weeklyDistance = Object.values(runPlan).reduce((sum, day) => sum + (day.distance || 0), 0);
+  const weeklyDistance = Object.values(runPlan).reduce((sum, day) => day.type !== 'rest' ? sum + (day.distance || 0) : sum, 0);
   const runDays = Object.values(runPlan).filter(day => day.type !== 'rest').length;
 
   const handleSubmitRun = (logData) => {
@@ -968,9 +1008,11 @@ function RunPlanSection() {
         <div className="day-header">
           <div className="day-title">
             <h2>{selectedDay}</h2>
-            <span className="run-type-badge" style={{ background: runType.color }}>
-              {runType.label}
-            </span>
+            {currentDayData.type !== 'rest' && (
+              <span className="run-type-badge" style={{ background: runType.color }}>
+                {currentDayData.type === 'other' && currentDayData.customType ? currentDayData.customType : runType.label}
+              </span>
+            )}
           </div>
           <div className="day-stats">
             <div className="stat">
@@ -1003,15 +1045,17 @@ function RunPlanSection() {
           />
         ) : (
           <RunPlanDisplay
+            day={selectedDay}
             data={currentDayData}
             onEdit={() => setIsEditing(true)}
-            onDelete={() => {
+            onRestDay={() => {
               updateDay(selectedDay, {
                 name: "Rest Day",
                 type: "rest",
+                customType: "",
                 effort: "None",
                 distance: 0,
-                notes: "Rest and recover",
+                notes: "",
                 segments: []
               });
             }}
@@ -1022,26 +1066,21 @@ function RunPlanSection() {
         )}
       </main>
 
-      <footer className="footer">
-        <button className="btn btn-ghost" onClick={resetToDefault}>
-          Reset to Default Plan
-        </button>
-      </footer>
     </>
   );
 }
 
-function RunPlanDisplay({ data, onEdit, onDelete, onSubmit, justSubmitted, isCompletedToday }) {
+function RunPlanDisplay({ day, data, onEdit, onRestDay, onSubmit, justSubmitted, isCompletedToday }) {
   const runType = RUN_TYPES[data.type] || RUN_TYPES.easy;
 
   if (data.type === 'rest') {
     return (
       <div className="empty-state">
-        <div className="empty-icon">🛁</div>
-        <h3>{data.name}</h3>
-        <p>{data.notes || "Recovery is self-love in action 💗"}</p>
+        <div className="empty-icon">{REST_DAY_EMOJIS[day] || '😴'}</div>
+        <h3>Rest Day</h3>
+        <p>Recovery is part of the process 🔄</p>
         <button className="btn btn-primary" onClick={onEdit}>
-          Edit Day
+          Add a Run
         </button>
       </div>
     );
@@ -1092,7 +1131,7 @@ function RunPlanDisplay({ data, onEdit, onDelete, onSubmit, justSubmitted, isCom
       <div className="submit-run-section">
         {justSubmitted ? (
           <div className="submit-success">
-            <span>✨</span> Run logged! You're on fire, queen! <span>🔥</span>
+            <span>✨</span> Run logged! You're on fire! <span>🔥</span>
           </div>
         ) : (
           <button 
@@ -1111,7 +1150,7 @@ function RunPlanDisplay({ data, onEdit, onDelete, onSubmit, justSubmitted, isCom
         <button className="btn btn-ghost" onClick={onEdit}>
           Edit
         </button>
-        <button className="btn btn-ghost btn-danger" onClick={onDelete}>
+        <button className="btn btn-ghost btn-danger" onClick={onRestDay}>
           Delete Run
         </button>
       </div>
@@ -1257,13 +1296,15 @@ function RunLogForm({ day, data, onSubmit, onCancel }) {
 }
 
 function RunPlanEditor({ day, data, onSave, onCancel }) {
+  const isFromRest = data.type === 'rest';
   const [formData, setFormData] = useState({
-    name: data.name,
-    type: data.type,
-    effort: data.effort,
-    distance: data.distance,
-    notes: data.notes,
-    segments: data.segments || [],
+    name: isFromRest ? '' : data.name,
+    type: isFromRest ? 'easy' : data.type,
+    customType: data.customType || '',
+    effort: isFromRest ? '' : data.effort,
+    distance: isFromRest ? 0 : data.distance,
+    notes: isFromRest ? '' : data.notes,
+    segments: isFromRest ? [] : (data.segments || []),
   });
 
   const handleSubmit = (e) => {
@@ -1312,13 +1353,24 @@ function RunPlanEditor({ day, data, onSave, onCancel }) {
           <label>Run Type</label>
           <select
             value={formData.type}
-            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, type: e.target.value, customType: '' })}
           >
-            {Object.entries(RUN_TYPES).map(([key, value]) => (
+            {Object.entries(RUN_TYPES).filter(([key]) => key !== 'rest').map(([key, value]) => (
               <option key={key} value={key}>{value.label}</option>
             ))}
           </select>
         </div>
+        {formData.type === 'other' && (
+          <div className="edit-field">
+            <label>Custom Run Type</label>
+            <input
+              type="text"
+              value={formData.customType || ''}
+              onChange={(e) => setFormData({ ...formData, customType: e.target.value })}
+              placeholder="e.g., Trail, Treadmill..."
+            />
+          </div>
+        )}
         <div className="edit-field">
           <label>Total Distance (km)</label>
           <input
@@ -1447,7 +1499,7 @@ function RunLogSection() {
 
         {!showAddForm && (
           <button className="add-run-btn" onClick={() => setShowAddForm(true)}>
-            <span>+</span> Log Your Run, Queen 👑
+            <span>+</span> Log Your Run 🏃
           </button>
         )}
 
@@ -1464,10 +1516,10 @@ function RunLogSection() {
         {runs.length === 0 && !showAddForm ? (
           <div className="empty-state">
             <div className="empty-icon">🏃‍♀️</div>
-            <h3>Ready to Run, Babe?</h3>
-            <p>Log your runs here and watch your progress bloom! 🌸</p>
+            <h3>Ready to Run?</h3>
+            <p>Log your runs here and watch your progress grow! 📈</p>
             <button className="btn btn-primary" onClick={() => setShowAddForm(true)}>
-              Log Your First Run ✨
+              Log Your First Run 🏃
             </button>
           </div>
         ) : (

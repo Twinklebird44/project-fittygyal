@@ -7,7 +7,7 @@ const createEmptyWorkouts = () => {
   const emptyWorkouts = {};
   DAYS_OF_WEEK.forEach(day => {
     emptyWorkouts[day] = {
-      name: '',
+      name: 'Rest Day',
       exercises: []
     };
   });
@@ -16,7 +16,7 @@ const createEmptyWorkouts = () => {
 
 const defaultPlans = [{
   id: 'default',
-  name: 'Starter Plan',
+  name: 'My Plan',
   createdAt: new Date().toISOString(),
   workouts: defaultWorkouts
 }];

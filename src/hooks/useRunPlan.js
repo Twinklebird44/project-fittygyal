@@ -7,10 +7,9 @@ export function useRunPlan() {
   const updateDay = (day, updates) => {
     setRunPlan(prev => ({
       ...prev,
-      [day]: {
-        ...prev[day],
-        ...updates
-      }
+      [day]: updates.type === 'rest'
+        ? { name: "Rest Day", type: "rest", effort: "None", distance: 0, notes: "", segments: [] }
+        : { ...prev[day], ...updates }
     }));
   };
 
