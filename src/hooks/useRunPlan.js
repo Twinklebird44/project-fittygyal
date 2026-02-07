@@ -1,17 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useFirestoreDoc } from './useFirestoreDoc';
 import { defaultRunPlan } from '../data/defaultRunPlan';
 
-const STORAGE_KEY = 'iron-log-run-plan';
-
 export function useRunPlan() {
-  const [runPlan, setRunPlan] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : defaultRunPlan;
-  });
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(runPlan));
-  }, [runPlan]);
+  const { data: runPlan, setData: setRunPlan, loading } = useFirestoreDoc('runPlan', defaultRunPlan);
 
   const updateDay = (day, updates) => {
     setRunPlan(prev => ({
@@ -63,6 +54,7 @@ export function useRunPlan() {
     updateSegments,
     addSegment,
     removeSegment,
-    resetToDefault
+    resetToDefault,
+    loading
   };
 }

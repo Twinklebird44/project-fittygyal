@@ -1,16 +1,7 @@
-import { useState, useEffect } from 'react';
-
-const STORAGE_KEY = 'fitty-gyal-workout-history';
+import { useFirestoreDoc } from './useFirestoreDoc';
 
 export function useWorkoutHistory() {
-  const [history, setHistory] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-  }, [history]);
+  const { data: history, setData: setHistory, loading } = useFirestoreDoc('workoutHistory', []);
 
   // Submit a completed workout
   const submitWorkout = (day, workout) => {
@@ -55,7 +46,7 @@ export function useWorkoutHistory() {
   const compareExercise = (exerciseName, dayOfWeek) => {
     const dayHistory = getDayHistory(dayOfWeek)
       .filter(entry => entry.exercises.some(ex => ex.name.toLowerCase() === exerciseName.toLowerCase()))
-      .slice(0, 4); // Last 4 occurrences
+      .slice(0, 4);
 
     return dayHistory.map(entry => ({
       date: entry.date,
@@ -97,7 +88,6 @@ export function useWorkoutHistory() {
     const totalSets = weekWorkouts.reduce((sum, entry) => 
       sum + entry.exercises.reduce((s, ex) => s + ex.sets, 0), 0);
     
-    // Calculate max weights per exercise
     const exerciseMaxes = {};
     weekWorkouts.forEach(entry => {
       entry.exercises.forEach(ex => {
@@ -108,7 +98,6 @@ export function useWorkoutHistory() {
       });
     });
 
-    // Count workout days
     const daysWorkedOut = [...new Set(weekWorkouts.map(w => w.dayOfWeek))];
 
     return {
@@ -132,7 +121,6 @@ export function useWorkoutHistory() {
     const workoutsChange = currentStats.totalWorkouts - previousStats.totalWorkouts;
     const setsChange = currentStats.totalSets - previousStats.totalSets;
 
-    // Compare PRs (Personal Records)
     const newPRs = [];
     Object.keys(currentStats.exerciseMaxes).forEach(key => {
       const current = currentStats.exerciseMaxes[key];
@@ -147,89 +135,82 @@ export function useWorkoutHistory() {
       }
     });
 
-    // Generate insights
     const insights = [];
 
     if (previousStats.totalWorkouts > 0) {
-      // Volume insight
       if (volumeChange > 0) {
         const percent = ((volumeChange / previousStats.totalVolume) * 100).toFixed(0);
         insights.push({
           type: 'positive',
-          icon: '💪',
+          icon: '\u{1F4AA}',
           text: `${(volumeChange / 1000).toFixed(1)}k kg more volume this week (+${percent}%)`
         });
       } else if (volumeChange < 0) {
         insights.push({
           type: 'neutral',
-          icon: '📊',
+          icon: '\u{1F4CA}',
           text: `${(Math.abs(volumeChange) / 1000).toFixed(1)}k kg less volume - recovery week?`
         });
       }
 
-      // Consistency insight
       if (workoutsChange > 0) {
         insights.push({
           type: 'positive',
-          icon: '🔥',
+          icon: '\u{1F525}',
           text: `${workoutsChange} more workout${workoutsChange > 1 ? 's' : ''} completed!`
         });
       } else if (workoutsChange < 0) {
         insights.push({
           type: 'neutral',
-          icon: '📅',
+          icon: '\u{1F4C5}',
           text: `${Math.abs(workoutsChange)} fewer workout${Math.abs(workoutsChange) > 1 ? 's' : ''} this week`
         });
       } else if (workoutsChange === 0 && currentStats.totalWorkouts > 0) {
         insights.push({
           type: 'positive',
-          icon: '⭐',
+          icon: '\u{2B50}',
           text: `Consistent! Same number of workouts as last week`
         });
       }
 
-      // Sets insight
       if (setsChange > 10) {
         insights.push({
           type: 'positive',
-          icon: '📈',
+          icon: '\u{1F4C8}',
           text: `${setsChange} more sets - pushing harder!`
         });
       }
 
-      // PR insights
       if (newPRs.length > 0) {
         newPRs.forEach(pr => {
           insights.push({
             type: 'positive',
-            icon: '🏆',
+            icon: '\u{1F3C6}',
             text: `New PR on ${pr.exercise}: ${pr.newWeight}kg (+${pr.increase}kg)`
           });
         });
       }
 
-      // Avg volume per workout
       const avgChange = currentStats.avgVolumePerWorkout - previousStats.avgVolumePerWorkout;
       if (avgChange > 500) {
         insights.push({
           type: 'positive',
-          icon: '💥',
+          icon: '\u{1F4A5}',
           text: `${(avgChange / 1000).toFixed(1)}k more volume per session - intense!`
         });
       }
     }
 
-    // First week insights
     if (previousStats.totalWorkouts === 0 && currentStats.totalWorkouts > 0) {
       insights.push({
         type: 'positive',
-        icon: '🌟',
+        icon: '\u{1F31F}',
         text: `Great start! ${currentStats.totalWorkouts} workout${currentStats.totalWorkouts > 1 ? 's' : ''} logged`
       });
       if (currentStats.totalVolume > 0) {
         insights.push({
           type: 'neutral',
-          icon: '🏋️',
+          icon: '\u{1F3CB}\u{FE0F}',
           text: `Total volume: ${(currentStats.totalVolume / 1000).toFixed(1)}k kg`
         });
       }
@@ -301,6 +282,7 @@ export function useWorkoutHistory() {
     compareWeeks,
     getVolumeHistory,
     getExerciseHistory,
-    calculateVolume
+    calculateVolume,
+    loading
   };
 }

@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from './contexts/AuthContext';
+import LoginPage from './components/LoginPage';
 import { useWorkoutPlans } from './hooks/useWorkoutPlans';
 import { useWorkoutHistory } from './hooks/useWorkoutHistory';
 import { useRunning } from './hooks/useRunning';
@@ -9,22 +11,13 @@ import { RUN_TYPES, SEGMENT_TYPES } from './data/defaultRunPlan';
 import './App.css';
 
 function App() {
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('gym');
 
-  // Prevent mobile browser autofill on all form fields
-  useEffect(() => {
-    const disableAutofill = () => {
-      document.querySelectorAll('input, textarea, select').forEach(el => {
-        if (el.getAttribute('autocomplete') !== 'off') {
-          el.setAttribute('autocomplete', 'off');
-        }
-      });
-    };
-    disableAutofill();
-    const observer = new MutationObserver(disableAutofill);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, []);
+  // If not logged in, show login page
+  if (!user) {
+    return <LoginPage />;
+  }
 
   return (
     <div className="app">
@@ -39,6 +32,14 @@ function App() {
             <span className="star small">✦</span>
             <span className="star">✦</span>
           </div>
+        </div>
+        <div className="user-bar">
+          <span className="user-greeting">
+            Hey, {user.displayName || user.email?.split('@')[0] || 'Queen'}!
+          </span>
+          <button className="btn-logout" onClick={logout}>
+            Log Out
+          </button>
         </div>
       </header>
 

@@ -1,17 +1,10 @@
-import { useState, useEffect } from 'react';
 import { defaultWorkouts } from '../data/defaultWorkouts';
+import { useFirestoreDoc } from './useFirestoreDoc';
 
-const STORAGE_KEY = 'iron-log-workouts';
-
+// NOTE: This hook is not currently used — useWorkoutPlans replaced it.
+// Kept for reference but migrated to Firestore to remove localStorage.
 export function useWorkouts() {
-  const [workouts, setWorkouts] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : defaultWorkouts;
-  });
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(workouts));
-  }, [workouts]);
+  const { data: workouts, setData: setWorkouts, loading } = useFirestoreDoc('workouts', defaultWorkouts);
 
   const updateExercise = (day, exerciseId, updates) => {
     setWorkouts(prev => ({
@@ -66,6 +59,7 @@ export function useWorkouts() {
     addExercise,
     removeExercise,
     updateDayName,
-    resetToDefault
+    resetToDefault,
+    loading
   };
 }
