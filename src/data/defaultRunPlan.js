@@ -18,7 +18,7 @@ export const defaultRunPlan = {
 };
 
 export const RUN_TYPES = {
-  other: { label: "Custom Name", color: "#99AECC" },
+  other: { label: "Custom", color: "#D4A054" },
   easy: { label: "Easy", color: "#6DD9A0" },
   intervals: { label: "Intervals", color: "#F0A050" },
   tempo: { label: "Tempo", color: "#E8955A" },
@@ -28,7 +28,7 @@ export const RUN_TYPES = {
   progression: { label: "Progression", color: "#6AA0E0" },
   sprint: { label: "Sprint", color: "#F06060" },
   short: { label: "Short Run", color: "#82DCA0" },
-  trail: { label: "Trail", color: "#8ABB5A" },
+  trail: { label: "Trail", color: "#5EBD8A" },
   treadmill: { label: "Treadmill", color: "#A0B0C8" },
   warmup: { label: "Warm Up", color: "#F0CC60" },
   cooldown: { label: "Cool Down", color: "#6CC0D8" },

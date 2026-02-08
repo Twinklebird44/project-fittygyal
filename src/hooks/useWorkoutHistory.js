@@ -4,12 +4,13 @@ export function useWorkoutHistory() {
   const { data: history, setData: setHistory, loading } = useFirestoreDoc('workoutHistory', []);
 
   // Submit a completed workout
-  const submitWorkout = (day, workout) => {
+  const submitWorkout = (day, workout, planId = null) => {
     const entry = {
       id: Date.now(),
       date: new Date().toISOString(),
       dayOfWeek: day,
       workoutName: workout.name,
+      planId: planId || null,
       exercises: workout.exercises.map(ex => ({
         name: ex.name,
         sets: ex.sets,
@@ -21,8 +22,14 @@ export function useWorkoutHistory() {
     return entry;
   };
 
+  // Get history filtered by plan (entries without planId are included for backwards compat)
+  const getHistoryForPlan = (planId) => {
+    if (!planId) return history;
+    return history.filter(entry => !entry.planId || entry.planId === planId);
+  };
+
   // Get workouts for a specific week
-  const getWeekWorkouts = (weekOffset = 0) => {
+  const getWeekWorkouts = (weekOffset = 0, planId = null) => {
     const now = new Date();
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - now.getDay() - (weekOffset * 7));
@@ -31,15 +38,17 @@ export function useWorkoutHistory() {
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 7);
 
-    return history.filter(entry => {
+    const source = planId ? getHistoryForPlan(planId) : history;
+    return source.filter(entry => {
       const entryDate = new Date(entry.date);
       return entryDate >= startOfWeek && entryDate < endOfWeek;
     });
   };
 
   // Get workout history for a specific day of the week
-  const getDayHistory = (dayOfWeek) => {
-    return history.filter(entry => entry.dayOfWeek === dayOfWeek);
+  const getDayHistory = (dayOfWeek, planId = null) => {
+    const source = planId ? getHistoryForPlan(planId) : history;
+    return source.filter(entry => entry.dayOfWeek === dayOfWeek);
   };
 
   // Compare exercise progress between two dates
@@ -68,8 +77,8 @@ export function useWorkoutHistory() {
   const getTotalWorkouts = () => history.length;
 
   // Get this week's completed days
-  const getThisWeekCompletedDays = () => {
-    const thisWeek = getWeekWorkouts(0);
+  const getThisWeekCompletedDays = (planId = null) => {
+    const thisWeek = getWeekWorkouts(0, planId);
     return [...new Set(thisWeek.map(entry => entry.dayOfWeek))];
   };
 
@@ -79,8 +88,8 @@ export function useWorkoutHistory() {
   };
 
   // Get weekly stats
-  const getWeeklyStats = (weekOffset = 0) => {
-    const weekWorkouts = getWeekWorkouts(weekOffset);
+  const getWeeklyStats = (weekOffset = 0, planId = null) => {
+    const weekWorkouts = getWeekWorkouts(weekOffset, planId);
     
     const totalVolume = weekWorkouts.reduce((sum, entry) => sum + calculateVolume(entry), 0);
     const totalWorkouts = weekWorkouts.length;
@@ -113,9 +122,9 @@ export function useWorkoutHistory() {
   };
 
   // Compare weeks and generate insights
-  const compareWeeks = (currentWeekOffset = 0) => {
-    const currentStats = getWeeklyStats(currentWeekOffset);
-    const previousStats = getWeeklyStats(currentWeekOffset + 1);
+  const compareWeeks = (currentWeekOffset = 0, planId = null) => {
+    const currentStats = getWeeklyStats(currentWeekOffset, planId);
+    const previousStats = getWeeklyStats(currentWeekOffset + 1, planId);
 
     const volumeChange = currentStats.totalVolume - previousStats.totalVolume;
     const workoutsChange = currentStats.totalWorkouts - previousStats.totalWorkouts;
@@ -228,10 +237,10 @@ export function useWorkoutHistory() {
   };
 
   // Get volume history for graphing (last N weeks)
-  const getVolumeHistory = (weeks = 8) => {
+  const getVolumeHistory = (weeks = 8, planId = null) => {
     const data = [];
     for (let i = weeks - 1; i >= 0; i--) {
-      const stats = getWeeklyStats(i);
+      const stats = getWeeklyStats(i, planId);
       const now = new Date();
       const weekStart = new Date(now);
       weekStart.setDate(now.getDate() - now.getDay() - (i * 7));
@@ -270,6 +279,7 @@ export function useWorkoutHistory() {
 
   return {
     history,
+    getHistoryForPlan,
     submitWorkout,
     getWeekWorkouts,
     getDayHistory,

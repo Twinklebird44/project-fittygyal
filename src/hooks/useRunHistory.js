@@ -9,8 +9,9 @@ export function useRunHistory() {
       id: Date.now(),
       date: new Date().toISOString(),
       dayOfWeek: day,
-      runName: runData.name,
+      runName: runData.type === 'other' ? (runData.customType || 'Custom') : runData.name,
       type: runData.type,
+      customType: runData.customType || '',
       plannedDistance: runData.distance,
       actualDistance: logData.actualDistance || runData.distance,
       effort: runData.effort,
@@ -233,6 +234,82 @@ export function useRunHistory() {
     };
   };
 
+  // Group all runs by type with stats for comparison
+  const getRunsByType = () => {
+    const grouped = {};
+    history.forEach(entry => {
+      if (!entry.type || entry.type === 'rest') return;
+      // Group custom runs by their custom name so same-named customs can be compared
+      let key = entry.type;
+      if (entry.type === 'other') {
+        const customName = entry.customType || entry.runName || 'Custom';
+        key = `other:${customName}`;
+      }
+      if (!grouped[key]) {
+        grouped[key] = [];
+      }
+      grouped[key].push(entry);
+    });
+
+    // Sort each group by date descending (newest first)
+    Object.keys(grouped).forEach(type => {
+      grouped[type].sort((a, b) => new Date(b.date) - new Date(a.date));
+    });
+
+    return grouped;
+  };
+
+  // Compare runs of the same type over time
+  const compareByType = (type) => {
+    const runs = (getRunsByType()[type] || []).slice(0, 10); // last 10 runs of this type
+    if (runs.length < 2) return null;
+
+    const latest = runs[0];
+    const previous = runs[1];
+    const oldest = runs[runs.length - 1];
+
+    const latestPace = parsePace(latest.pace);
+    const previousPace = parsePace(previous.pace);
+    const oldestPace = parsePace(oldest.pace);
+
+    const paceChangeVsPrev = (latestPace && previousPace) ? previousPace - latestPace : null;
+    const paceChangeVsFirst = (latestPace && oldestPace && runs.length > 2) ? oldestPace - latestPace : null;
+
+    const latestHR = parseInt(latest.avgHeartRate) || null;
+    const previousHR = parseInt(previous.avgHeartRate) || null;
+    const hrChange = (latestHR && previousHR) ? latestHR - previousHR : null;
+
+    const avgDistance = runs.reduce((sum, r) => sum + (r.actualDistance || 0), 0) / runs.length;
+
+    // Calculate average feeling across runs
+    const feelings = runs.filter(r => r.feeling).map(r => typeof r.feeling === 'number' ? r.feeling : null).filter(Boolean);
+    const avgFeeling = feelings.length > 0 ? feelings.reduce((s, f) => s + f, 0) / feelings.length : null;
+
+    return {
+      runs,
+      latest,
+      previous,
+      totalRuns: runs.length,
+      avgDistance: avgDistance.toFixed(1),
+      paceChangeVsPrev,
+      paceChangeVsFirst,
+      hrChange,
+      avgFeeling: avgFeeling ? avgFeeling.toFixed(1) : null,
+    };
+  };
+
+  // Get week-over-week stats for multiple weeks (for chart-like display)
+  const getMultiWeekStats = (numWeeks = 4) => {
+    const weeks = [];
+    for (let i = 0; i < numWeeks; i++) {
+      weeks.push({
+        weekOffset: i,
+        stats: getWeeklyStats(i),
+      });
+    }
+    return weeks.reverse(); // oldest first for left-to-right reading
+  };
+
   // Update a history entry
   const updateEntry = (id, updates) => {
     setHistory(prev => prev.map(entry =>
@@ -258,6 +335,9 @@ export function useRunHistory() {
     getThisWeekCompletedDays,
     getWeeklyStats,
     compareWeeks,
+    getRunsByType,
+    compareByType,
+    getMultiWeekStats,
     updateEntry,
     deleteEntry,
     clearHistory,

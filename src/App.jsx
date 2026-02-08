@@ -148,13 +148,13 @@ function GymSection() {
 
       {subTab === 'plan' && <GymPlanSection plansHook={plansHook} />}
       {subTab === 'plans' && <GymPlansSection plansHook={plansHook} />}
-      {subTab === 'history' && <GymHistorySection />}
+      {subTab === 'history' && <GymHistorySection activePlanId={plansHook.activePlanId} />}
     </>
   );
 }
 
 function GymPlanSection({ plansHook }) {
-  const { activePlan, updateActivePlanWorkouts } = plansHook;
+  const { activePlan, activePlanId, updateActivePlanWorkouts } = plansHook;
   const workouts = activePlan.workouts;
   
   const { submitWorkout, getThisWeekCompletedDays, deleteEntry, getWeekWorkouts } = useWorkoutHistory();
@@ -241,7 +241,7 @@ function GymPlanSection({ plansHook }) {
   };
 
   const currentDayData = workouts[selectedDay];
-  const completedDays = getThisWeekCompletedDays();
+  const completedDays = getThisWeekCompletedDays(activePlanId);
   const isCompletedToday = completedDays.includes(selectedDay);
 
   // Different color tones for each day
@@ -257,13 +257,13 @@ function GymPlanSection({ plansHook }) {
 
   const handleSubmitWorkout = () => {
     if (currentDayData.exercises.length === 0) return;
-    submitWorkout(selectedDay, currentDayData);
+    submitWorkout(selectedDay, currentDayData, activePlanId);
     setJustSubmitted(true);
     setTimeout(() => setJustSubmitted(false), 3000);
   };
 
   const handleUndoWorkoutLog = () => {
-    const thisWeek = getWeekWorkouts(0);
+    const thisWeek = getWeekWorkouts(0, activePlanId);
     const todayEntry = thisWeek.find(entry => entry.dayOfWeek === selectedDay);
     if (todayEntry) {
       deleteEntry(todayEntry.id);
@@ -625,14 +625,15 @@ function GymPlansSection({ plansHook }) {
   );
 }
 
-function GymHistorySection() {
-  const { history, getWeekWorkouts, deleteEntry, clearHistory, compareWeeks, getVolumeHistory, calculateVolume } = useWorkoutHistory();
+function GymHistorySection({ activePlanId }) {
+  const { history, getHistoryForPlan, getWeekWorkouts, deleteEntry, clearHistory, compareWeeks, getVolumeHistory, calculateVolume } = useWorkoutHistory();
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedEntry, setSelectedEntry] = useState(null);
 
-  const weekWorkouts = getWeekWorkouts(weekOffset);
-  const comparison = compareWeeks(weekOffset);
-  const volumeHistory = getVolumeHistory(8);
+  const planHistory = getHistoryForPlan(activePlanId);
+  const weekWorkouts = getWeekWorkouts(weekOffset, activePlanId);
+  const comparison = compareWeeks(weekOffset, activePlanId);
+  const volumeHistory = getVolumeHistory(8, activePlanId);
   
   const getWeekLabel = (offset) => {
     if (offset === 0) return "This Week";
@@ -651,9 +652,9 @@ function GymHistorySection() {
     });
   };
 
-  // Group workouts by day of week for comparison
+  // Group workouts by day of week for comparison (filtered by active plan)
   const groupedByDay = DAYS_OF_WEEK.reduce((acc, day) => {
-    acc[day] = history.filter(entry => entry.dayOfWeek === day).slice(0, 4);
+    acc[day] = planHistory.filter(entry => entry.dayOfWeek === day).slice(0, 4);
     return acc;
   }, {});
 
@@ -667,7 +668,7 @@ function GymHistorySection() {
           <h2>Workout History</h2>
           <div className="history-stats">
             <div className="stat">
-              <span className="stat-value">{history.length}</span>
+              <span className="stat-value">{planHistory.length}</span>
               <span className="stat-label">Total Workouts</span>
             </div>
             {comparison.current.totalVolume > 0 && (
@@ -746,7 +747,7 @@ function GymHistorySection() {
         )}
 
         {/* Progress Graph */}
-        {history.length > 0 && (
+        {planHistory.length > 0 && (
           <div className="progress-graph-section">
             <h3><Icon name="trendUp" size={18} /> Volume Progress</h3>
             <p className="graph-subtitle">Weekly total volume (kg) over time</p>
@@ -851,7 +852,7 @@ function GymHistorySection() {
         )}
 
         {/* Day-by-Day Comparison Section */}
-        {history.length >= 1 && (
+        {planHistory.length >= 1 && (
           <div className="progress-section">
             <h3>Progress by Day</h3>
             <p className="progress-subtitle">Compare your {DAYS_OF_WEEK.filter(d => groupedByDay[d].length > 0).join(', ')} workouts week over week!</p>
@@ -943,7 +944,7 @@ function GymHistorySection() {
       </main>
 
       <footer className="footer">
-        {history.length > 0 && (
+        {planHistory.length > 0 && (
           <button className="btn btn-ghost" onClick={clearHistory}>
             Clear All History
           </button>
@@ -1064,7 +1065,7 @@ function RunPlanSection() {
             <h2>{selectedDay}</h2>
             {currentDayData.type !== 'rest' && (
               <span className="run-type-badge" style={{ background: `var(--run-${currentDayData.type || 'rest'})` }}>
-                {currentDayData.type === 'other' && currentDayData.customType ? currentDayData.customType : runType.label}
+                {currentDayData.type === 'other' ? (currentDayData.customType || currentDayData.name || runType.label) : runType.label}
               </span>
             )}
           </div>
@@ -1143,7 +1144,7 @@ function RunPlanDisplay({ day, data, onEdit, onRestDay, onSubmit, onUndoLog, jus
   return (
     <div className="run-plan-card">
       <div className="run-plan-header" onClick={onEdit}>
-        <h3>{data.name}</h3>
+        <h3>{data.type === 'other' ? (data.customType || 'Custom') : (RUN_TYPES[data.type] || RUN_TYPES.easy).label}</h3>
         <span className="run-distance">{data.distance} km</span>
       </div>
 
@@ -1222,7 +1223,7 @@ function RunLogForm({ day, data, onSubmit, onCancel }) {
     duration: '',
     pace: '',
     avgHeartRate: '',
-    feeling: 'good',
+    feeling: 5,
     notes: ''
   });
 
@@ -1260,7 +1261,7 @@ function RunLogForm({ day, data, onSubmit, onCancel }) {
       <div className="run-log-header">
         <h3>Log Your Run</h3>
         <span className="run-type-badge" style={{ background: `var(--run-${data.type || 'rest'})` }}>
-          {data.name}
+          {data.type === 'other' ? (data.customType || 'Custom') : (RUN_TYPES[data.type] || RUN_TYPES.easy).label}
         </span>
       </div>
       
@@ -1300,31 +1301,29 @@ function RunLogForm({ day, data, onSubmit, onCancel }) {
           <div className="form-group">
             <label>Avg Heart Rate (bpm)</label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               placeholder="145"
               value={logData.avgHeartRate}
-              onChange={(e) => setLogData(prev => ({ ...prev, avgHeartRate: e.target.value }))}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9]/g, '');
+                setLogData(prev => ({ ...prev, avgHeartRate: val }));
+              }}
             />
           </div>
         </div>
 
         <div className="form-group">
-          <label>How did it feel?</label>
-          <div className="feeling-options">
-            {[
-              { value: 'great', label: 'Great', desc: 'Crushed it!' },
-              { value: 'good', label: 'Good', desc: 'Solid effort' },
-              { value: 'tough', label: 'Tough', desc: 'Pushed through' },
-              { value: 'struggled', label: 'Struggled', desc: 'Hard day' }
-            ].map(option => (
+          <label>How did it feel? <span className="feeling-value">{logData.feeling}/10</span></label>
+          <div className="feeling-scale">
+            {[1,2,3,4,5,6,7,8,9,10].map(n => (
               <button
-                key={option.value}
+                key={n}
                 type="button"
-                className={`feeling-btn ${logData.feeling === option.value ? 'active' : ''}`}
-                onClick={() => setLogData(prev => ({ ...prev, feeling: option.value }))}
+                className={`feeling-btn ${logData.feeling === n ? 'active' : ''} ${n <= logData.feeling ? 'filled' : ''}`}
+                onClick={() => setLogData(prev => ({ ...prev, feeling: n }))}
               >
-                <span className="feeling-emoji">{option.label.split(' ')[0]}</span>
-                <span className="feeling-label">{option.label.split(' ')[1]}</span>
+                {n}
               </button>
             ))}
           </div>
@@ -1356,7 +1355,6 @@ function RunLogForm({ day, data, onSubmit, onCancel }) {
 function RunPlanEditor({ day, data, onSave, onCancel }) {
   const isFromRest = data.type === 'rest';
   const [formData, setFormData] = useState({
-    name: isFromRest ? '' : data.name,
     type: isFromRest ? 'easy' : data.type,
     customType: data.customType || '',
     effort: isFromRest ? '' : data.effort,
@@ -1367,7 +1365,9 @@ function RunPlanEditor({ day, data, onSave, onCancel }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
+    const rt = RUN_TYPES[formData.type] || RUN_TYPES.easy;
+    const autoName = formData.type === 'other' ? (formData.customType || 'Custom') : rt.label;
+    onSave({ ...formData, name: autoName });
   };
 
   const addSegment = () => {
@@ -1398,15 +1398,6 @@ function RunPlanEditor({ day, data, onSave, onCancel }) {
       <h3>Edit {day}'s Run</h3>
       
       <div className="run-form-grid">
-        <div className="edit-field">
-          <label>Run Name</label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="e.g., Easy Run, Intervals..."
-          />
-        </div>
         <div className="edit-field">
           <label>Run Type</label>
           <select
@@ -1613,12 +1604,14 @@ function RunLogSection() {
 }
 
 function RunHistorySection() {
-  const { history, getWeekRuns, deleteEntry, clearHistory, compareWeeks } = useRunHistory();
+  const { history, getWeekRuns, deleteEntry, clearHistory, compareWeeks, getRunsByType, compareByType } = useRunHistory();
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedEntry, setSelectedEntry] = useState(null);
+  const [selectedType, setSelectedType] = useState(null);
 
   const weekRuns = getWeekRuns(weekOffset);
   const comparison = compareWeeks(weekOffset);
+  const runsByType = getRunsByType();
   
   const getWeekLabel = (offset) => {
     if (offset === 0) return "This Week";
@@ -1631,21 +1624,14 @@ function RunHistorySection() {
     return date.toLocaleDateString('en-US', { 
       weekday: 'short', 
       month: 'short', 
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit'
+      day: 'numeric'
     });
   };
-
-  // Group runs by day of week for comparison
-  const groupedByDay = DAYS_OF_WEEK.reduce((acc, day) => {
-    acc[day] = history.filter(entry => entry.dayOfWeek === day).slice(0, 4);
-    return acc;
-  }, {});
 
   return (
     <>
       <main className="main">
+        {/* Simple header stats */}
         <div className="history-header">
           <h2>Run History</h2>
           <div className="history-stats">
@@ -1657,85 +1643,36 @@ function RunHistorySection() {
               <span className="stat-value">{comparison.current.totalDistance.toFixed(1)}</span>
               <span className="stat-label">KM {getWeekLabel(weekOffset)}</span>
             </div>
+            {comparison.current.avgPace && (
+              <div className="stat">
+                <span className="stat-value">{comparison.current.avgPace}</span>
+                <span className="stat-label">Avg Pace</span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Weekly Insights Section */}
-        {comparison.insights && comparison.insights.length > 0 && (
-          <div className="weekly-insights">
-            <div className="insights-header">
-              <h3><Icon name="chart" size={18} /> Weekly Insights</h3>
-              {comparison.previous.totalRuns > 0 && (
-                <span className="insights-subtitle">vs. Last Week</span>
+        {/* Simple week-over-week change badge */}
+        {comparison.previous.totalRuns > 0 && (
+          <div className="wow-simple">
+            <span className="wow-simple-label">vs Last Week</span>
+            <div className="wow-simple-badges">
+              <span className={`stat-change ${comparison.distanceChange >= 0 ? 'positive' : 'negative'}`}>
+                {comparison.distanceChange >= 0 ? '+' : ''}{comparison.distanceChange.toFixed(1)} km
+              </span>
+              <span className={`stat-change ${comparison.runsChange >= 0 ? 'positive' : 'negative'}`}>
+                {comparison.runsChange >= 0 ? '+' : ''}{comparison.runsChange} run{Math.abs(comparison.runsChange) !== 1 ? 's' : ''}
+              </span>
+              {comparison.paceChange !== null && comparison.paceChange !== 0 && (
+                <span className={`stat-change ${comparison.paceChange > 0 ? 'positive' : 'negative'}`}>
+                  {Math.round(Math.abs(comparison.paceChange) * 60)}s {comparison.paceChange > 0 ? 'faster' : 'slower'}
+                </span>
               )}
-            </div>
-            
-            {/* Week Stats Comparison */}
-            {comparison.previous.totalRuns > 0 && (
-              <div className="week-stats-comparison">
-                <div className="week-stat-card">
-                  <div className="stat-comparison">
-                    <span className="stat-current">{comparison.current.totalDistance.toFixed(1)} km</span>
-                    <span className={`stat-change ${comparison.distanceChange >= 0 ? 'positive' : 'negative'}`}>
-                      {comparison.distanceChange >= 0 ? '+' : ''}{comparison.distanceChange.toFixed(1)}
-                    </span>
-                  </div>
-                  <span className="stat-label">Total Distance</span>
-                </div>
-                
-                <div className="week-stat-card">
-                  <div className="stat-comparison">
-                    <span className="stat-current">{comparison.current.totalRuns} runs</span>
-                    <span className={`stat-change ${comparison.runsChange >= 0 ? 'positive' : 'negative'}`}>
-                      {comparison.runsChange >= 0 ? '+' : ''}{comparison.runsChange}
-                    </span>
-                  </div>
-                  <span className="stat-label">Runs Completed</span>
-                </div>
-                
-                {comparison.current.avgPace && (
-                  <div className="week-stat-card">
-                    <div className="stat-comparison">
-                      <span className="stat-current">{comparison.current.avgPace}/km</span>
-                      {comparison.paceChange !== null && (
-                        <span className={`stat-change ${comparison.paceChange > 0 ? 'positive' : comparison.paceChange < 0 ? 'negative' : ''}`}>
-                          {comparison.paceChange > 0 ? `${Math.round(comparison.paceChange * 60)}s faster` : 
-                           comparison.paceChange < 0 ? `${Math.round(Math.abs(comparison.paceChange) * 60)}s slower` : 'same'}
-                        </span>
-                      )}
-                    </div>
-                    <span className="stat-label">Avg Pace</span>
-                  </div>
-                )}
-                
-                {comparison.current.avgHeartRate && (
-                  <div className="week-stat-card">
-                    <div className="stat-comparison">
-                      <span className="stat-current">{comparison.current.avgHeartRate} bpm</span>
-                      {comparison.hrChange !== null && (
-                        <span className={`stat-change ${comparison.hrChange < 0 ? 'positive' : comparison.hrChange > 0 ? 'negative' : ''}`}>
-                          {comparison.hrChange !== 0 ? `${comparison.hrChange > 0 ? '+' : ''}${comparison.hrChange}` : 'same'}
-                        </span>
-                      )}
-                    </div>
-                    <span className="stat-label">Avg Heart Rate</span>
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {/* Insight Cards */}
-            <div className="insights-list">
-              {comparison.insights.map((insight, idx) => (
-                <div key={idx} className={`insight-card ${insight.type}`}>
-                  <span className="insight-icon">{insight.icon}</span>
-                  <span className="insight-text">{insight.text}</span>
-                </div>
-              ))}
             </div>
           </div>
         )}
 
+        {/* Week navigator */}
         <div className="week-navigator">
           <button 
             className="btn btn-ghost"
@@ -1753,6 +1690,7 @@ function RunHistorySection() {
           </button>
         </div>
 
+        {/* Run list */}
         {weekRuns.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon"><Icon name="running" size={48} /></div>
@@ -1761,183 +1699,174 @@ function RunHistorySection() {
           </div>
         ) : (
           <div className="history-list">
-            {weekRuns.map(entry => (
-              <div 
-                key={entry.id} 
-                className={`history-entry ${selectedEntry === entry.id ? 'expanded' : ''}`}
-                onClick={() => setSelectedEntry(selectedEntry === entry.id ? null : entry.id)}
-              >
-                <div className="history-entry-header">
-                  <div className="history-entry-info">
-                    <span className="history-day">{entry.dayOfWeek}</span>
-                    <span className="history-name">{entry.runName}</span>
-                  </div>
-                  <div className="history-entry-meta">
-                    <span className="history-date">{formatDate(entry.date)}</span>
-                    <span className="history-distance">{entry.actualDistance} km</span>
-                  </div>
-                </div>
-                
-                {selectedEntry === entry.id && (
-                  <div className="history-entry-details">
-                    <div className="run-details-grid">
-                      {entry.duration && (
-                        <div className="run-detail">
-                          <span className="detail-label">Duration</span>
-                          <span className="detail-value">{entry.duration}</span>
-                        </div>
-                      )}
-                      {entry.pace && (
-                        <div className="run-detail">
-                          <span className="detail-label">Pace</span>
-                          <span className="detail-value">{entry.pace} /km</span>
-                        </div>
-                      )}
-                      {entry.avgHeartRate && (
-                        <div className="run-detail">
-                          <span className="detail-label">Avg HR</span>
-                          <span className="detail-value">{entry.avgHeartRate} bpm</span>
-                        </div>
-                      )}
-                      <div className="run-detail">
-                        <span className="detail-label">Feeling</span>
-                        <span className="detail-value feeling-value">
-                          {entry.feeling === 'great' && 'Great'}
-                          {entry.feeling === 'good' && 'Good'}
-                          {entry.feeling === 'tough' && 'Tough'}
-                          {entry.feeling === 'struggled' && 'Struggled'}
-                        </span>
-                      </div>
+            {weekRuns.map(entry => {
+              const runType = RUN_TYPES[entry.type] || RUN_TYPES.easy;
+              return (
+                <div 
+                  key={entry.id} 
+                  className={`history-entry ${selectedEntry === entry.id ? 'expanded' : ''}`}
+                  onClick={() => setSelectedEntry(selectedEntry === entry.id ? null : entry.id)}
+                >
+                  <div className="history-entry-header">
+                    <div className="history-entry-info">
+                      <span className="history-day">{entry.dayOfWeek}</span>
+                      <span className="run-type-badge" style={{ background: `var(--run-${entry.type || 'easy'})` }}>
+                        {entry.type === 'other' ? (entry.customType || entry.runName || runType.label) : runType.label}
+                      </span>
                     </div>
-                    {entry.notes && (
-                      <p className="run-history-notes">{entry.notes}</p>
-                    )}
-                    <button 
-                      className="btn btn-ghost btn-small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteEntry(entry.id);
-                        setSelectedEntry(null);
-                      }}
-                    >
-                      Delete Entry
-                    </button>
+                    <div className="history-entry-meta">
+                      <span className="history-distance">{entry.actualDistance} km</span>
+                      {entry.pace && <span className="history-pace">{entry.pace}/km</span>}
+                    </div>
                   </div>
-                )}
-              </div>
-            ))}
+                  
+                  {selectedEntry === entry.id && (
+                    <div className="history-entry-details">
+                      <div className="run-details-grid">
+                        {entry.duration && (
+                          <div className="run-detail">
+                            <span className="detail-label">Duration</span>
+                            <span className="detail-value">{entry.duration}</span>
+                          </div>
+                        )}
+                        {entry.avgHeartRate && (
+                          <div className="run-detail">
+                            <span className="detail-label">Avg HR</span>
+                            <span className="detail-value">{entry.avgHeartRate} bpm</span>
+                          </div>
+                        )}
+                        {entry.feeling && (
+                          <div className="run-detail">
+                            <span className="detail-label">Feeling</span>
+                            <span className="detail-value feeling-value">
+                              {typeof entry.feeling === 'number' ? `${entry.feeling}/10` : entry.feeling}
+                            </span>
+                          </div>
+                        )}
+                        <div className="run-detail">
+                          <span className="detail-label">Date</span>
+                          <span className="detail-value">{formatDate(entry.date)}</span>
+                        </div>
+                      </div>
+                      {entry.notes && (
+                        <p className="run-history-notes">{entry.notes}</p>
+                      )}
+                      <button 
+                        className="btn btn-ghost btn-small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteEntry(entry.id);
+                          setSelectedEntry(null);
+                        }}
+                      >
+                        Delete Entry
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 
-        {/* Progress Comparison Section */}
-        {history.length >= 1 && (
-          <div className="progress-section">
-            <h3>Run Progress by Day</h3>
-            <p className="progress-subtitle">Compare your runs week over week - same day comparisons!</p>
-            
-            <div className="progress-days">
-              {DAYS_OF_WEEK.filter(day => groupedByDay[day].length > 0).map(day => {
-                const dayEntries = groupedByDay[day];
-                const latestEntry = dayEntries[0];
-                const previousEntry = dayEntries[1];
-                
-                // Helper to parse pace string to minutes
-                const parsePace = (pace) => {
-                  if (!pace) return null;
-                  const [min, sec] = pace.split(':').map(Number);
-                  return min + (sec || 0) / 60;
-                };
-                
-                // Calculate changes
-                const latestPace = parsePace(latestEntry.pace);
-                const previousPace = previousEntry ? parsePace(previousEntry.pace) : null;
-                const paceChange = latestPace && previousPace ? previousPace - latestPace : null; // Negative is faster (better)
-                
-                const latestHR = parseInt(latestEntry.avgHeartRate) || null;
-                const previousHR = previousEntry ? parseInt(previousEntry.avgHeartRate) : null;
-                const hrChange = latestHR && previousHR ? latestHR - previousHR : null;
-                
+        {/* Compare same run types — tap to expand */}
+        {Object.keys(runsByType).length > 0 && (
+          <div className="type-comparison-section">
+            <h3>Compare Run Types</h3>
+            <div className="type-chips">
+              {Object.keys(runsByType).map(typeKey => {
+                const isCustom = typeKey.startsWith('other:');
+                const baseType = isCustom ? 'other' : typeKey;
+                const customName = isCustom ? typeKey.slice(6) : null;
+                const rt = RUN_TYPES[baseType] || RUN_TYPES.easy;
+                const cssColor = `var(--run-${baseType})`;
+                const displayLabel = customName || rt.label;
                 return (
-                  <div key={day} className="progress-day-card run-progress-card">
-                    <div className="progress-day-header">
-                      <h4>{day}</h4>
-                      <span className="progress-run-name">{latestEntry.runName}</span>
-                    </div>
-                    
-                    <div className="progress-metrics">
-                      {/* Latest Run Stats */}
-                      <div className="metrics-row latest-metrics">
-                        <span className="metrics-date">
-                          {new Date(latestEntry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                        </span>
-                        <div className="metrics-values">
-                          <span className="metric">
-                            <span className="metric-value">{latestEntry.actualDistance}</span>
-                            <span className="metric-unit">km</span>
-                          </span>
-                          {latestEntry.duration && (
-                            <span className="metric">
-                              <span className="metric-value">{latestEntry.duration}</span>
-                              <span className="metric-unit">time</span>
-                            </span>
-                          )}
-                          {latestEntry.pace && (
-                            <span className="metric">
-                              <span className="metric-value">{latestEntry.pace}</span>
-                              <span className="metric-unit">/km</span>
-                            </span>
-                          )}
-                          {latestEntry.avgHeartRate && (
-                            <span className="metric">
-                              <span className="metric-value">{latestEntry.avgHeartRate}</span>
-                              <span className="metric-unit">bpm</span>
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {/* Comparison with previous */}
-                      {previousEntry && (
-                        <div className="metrics-comparison">
-                          <span className="comparison-label">vs {new Date(previousEntry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                          <div className="comparison-changes">
-                            {paceChange !== null && paceChange !== 0 && (
-                              <span className={`change-badge ${paceChange > 0 ? 'positive' : 'negative'}`}>
-                                <Icon name={paceChange > 0 ? 'bolt' : 'turtle'} size={12} /> {Math.abs(paceChange * 60).toFixed(0)}s {paceChange > 0 ? 'faster' : 'slower'}
-                              </span>
-                            )}
-                            {hrChange !== null && hrChange !== 0 && (
-                              <span className={`change-badge ${hrChange < 0 ? 'positive' : 'neutral'}`}>
-                                <Icon name="heart" size={12} /> {hrChange > 0 ? '+' : ''}{hrChange} bpm
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Previous runs mini history */}
-                      {dayEntries.length > 1 && (
-                        <div className="previous-runs">
-                          <span className="previous-label">Previous {day}s:</span>
-                          {dayEntries.slice(1, 4).map((entry) => (
-                            <div key={entry.id} className="previous-run-entry">
-                              <span className="prev-date">
-                                {new Date(entry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                              </span>
-                              <span className="prev-stats">
-                                {entry.actualDistance}km
-                                {entry.pace && ` • ${entry.pace}/km`}
-                                {entry.avgHeartRate && ` • ${entry.avgHeartRate}bpm`}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <button
+                    key={typeKey}
+                    className={`type-chip ${selectedType === typeKey ? 'active' : ''}`}
+                    style={{ '--chip-color': cssColor }}
+                    onClick={() => setSelectedType(selectedType === typeKey ? null : typeKey)}
+                  >
+                    <span className="type-chip-dot" style={{ background: cssColor }} />
+                    {displayLabel}
+                    <span className="type-chip-count">{runsByType[typeKey].length}</span>
+                  </button>
                 );
               })}
             </div>
+
+            {selectedType && (() => {
+              const typeComparison = compareByType(selectedType);
+              const typeRuns = runsByType[selectedType] || [];
+              const isCustom = selectedType.startsWith('other:');
+              const baseType = isCustom ? 'other' : selectedType;
+              const customName = isCustom ? selectedType.slice(6) : null;
+              const rt = RUN_TYPES[baseType] || RUN_TYPES.easy;
+              const cssColor = `var(--run-${baseType})`;
+              const displayLabel = customName || rt.label;
+              const maxDist = Math.max(...typeRuns.map(r => r.actualDistance || 0), 1);
+
+              return (
+                <div className="type-detail-card" style={{ '--type-accent': cssColor }}>
+                  <div className="type-detail-header">
+                    <h4 style={{ color: cssColor }}>{displayLabel}</h4>
+                    <span className="type-total-runs">{typeRuns.length} runs</span>
+                  </div>
+
+                  {typeComparison && (
+                    <div className="type-stats-row">
+                      <div className="type-stat">
+                        <span className="type-stat-value">{typeComparison.avgDistance}</span>
+                        <span className="type-stat-label">Avg KM</span>
+                      </div>
+                      {typeComparison.latest.pace && (
+                        <div className="type-stat">
+                          <span className="type-stat-value">{typeComparison.latest.pace}</span>
+                          <span className="type-stat-label">Latest Pace</span>
+                        </div>
+                      )}
+                      {typeComparison.paceChangeVsPrev !== null && typeComparison.paceChangeVsPrev !== 0 && (
+                        <div className="type-stat">
+                          <span className={`type-stat-value ${typeComparison.paceChangeVsPrev > 0 ? 'positive' : 'negative'}`}>
+                            {typeComparison.paceChangeVsPrev > 0 ? '-' : '+'}{Math.abs(typeComparison.paceChangeVsPrev * 60).toFixed(0)}s
+                          </span>
+                          <span className="type-stat-label">vs Last</span>
+                        </div>
+                      )}
+                      {typeComparison.avgFeeling && (
+                        <div className="type-stat">
+                          <span className="type-stat-value">{typeComparison.avgFeeling}</span>
+                          <span className="type-stat-label">Avg Feel</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="type-run-timeline">
+                    {typeRuns.slice(0, 6).map((run, idx) => (
+                      <div key={run.id} className="type-run-row">
+                        <span className="type-run-date">
+                          {new Date(run.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </span>
+                        <div className="type-run-bar-track">
+                          <div 
+                            className="type-run-bar-fill" 
+                            style={{ 
+                              width: `${((run.actualDistance || 0) / maxDist) * 100}%`, 
+                              background: cssColor,
+                              opacity: 1 - (idx * 0.08)
+                            }} 
+                          />
+                        </div>
+                        <span className="type-run-dist">{run.actualDistance} km</span>
+                        {run.pace && <span className="type-run-pace">{run.pace}/km</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
       </main>
