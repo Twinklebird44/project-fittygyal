@@ -10,22 +10,38 @@ import { useRunPlan } from './hooks/useRunPlan';
 import { useRunHistory } from './hooks/useRunHistory';
 import { DAYS_OF_WEEK, defaultWorkouts } from './data/defaultWorkouts';
 import { RUN_TYPES, SEGMENT_TYPES } from './data/defaultRunPlan';
+import Icon from './components/Icons';
 import './App.css';
 
-const REST_DAY_EMOJIS = {
-  Monday: '🌞',
-  Tuesday: '🌞',
-  Wednesday: '🌞',
-  Thursday: '🌞',
-  Friday: '🌞',
-  Saturday: '🌞',
-  Sunday: '🌞',
-};
+function WaveBackground() {
+  return (
+    <div className="wave-bg">
+      <svg className="wave wave-1" viewBox="0 0 3000 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0,100 C250,80 500,120 750,100 S1250,80 1500,100 S2000,120 2250,100 S2750,80 3000,100 L3000,200 L0,200 Z" fill="var(--wave-color-1)" />
+      </svg>
+      <svg className="wave wave-2" viewBox="0 0 3000 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0,110 C300,90 600,130 900,110 S1500,90 1800,110 S2400,130 2700,110 S2850,95 3000,105 L3000,200 L0,200 Z" fill="var(--wave-color-2)" />
+      </svg>
+      <svg className="wave wave-3" viewBox="0 0 3000 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0,95 C200,115 500,85 750,105 S1250,120 1500,95 S2000,85 2250,105 S2750,115 3000,95 L3000,200 L0,200 Z" fill="var(--wave-color-3)" />
+      </svg>
+    </div>
+  );
+}
 
 function App() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('gym');
   const [legalPage, setLegalPage] = useState(null);
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('fitty-dark-mode');
+    return saved === 'true';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+    localStorage.setItem('fitty-dark-mode', darkMode);
+  }, [darkMode]);
 
   if (legalPage === 'privacy') {
     return <PrivacyPolicy onBack={() => setLegalPage(null)} />;
@@ -41,6 +57,7 @@ function App() {
 
   return (
     <div className="app">
+      <WaveBackground />
       <header className="header">
         <div className="logo">
           <div className="logo-decoration left">
@@ -57,6 +74,13 @@ function App() {
           <span className="user-greeting">
             Hey, {user.displayName || user.email?.split('@')[0]}!
           </span>
+          <button
+            className="theme-toggle"
+            onClick={() => setDarkMode(prev => !prev)}
+            title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {darkMode ? <Icon name="sun" size={20} /> : <Icon name="moon" size={20} />}
+          </button>
           <button className="btn-logout" onClick={logout}>
             Log Out
           </button>
@@ -68,14 +92,14 @@ function App() {
           className={`main-tab ${activeTab === 'gym' ? 'active' : ''}`}
           onClick={() => setActiveTab('gym')}
         >
-          <span className="tab-icon">💪</span>
+          <span className="tab-icon"><Icon name="dumbbell" size={18} /></span>
           <span>Workouts</span>
         </button>
         <button 
           className={`main-tab ${activeTab === 'running' ? 'active' : ''}`}
           onClick={() => setActiveTab('running')}
         >
-          <span className="tab-icon">🏃‍♀️</span>
+          <span className="tab-icon"><Icon name="running" size={18} /></span>
           <span>Running</span>
         </button>
       </div>
@@ -106,19 +130,19 @@ function GymSection() {
           className={`sub-tab ${subTab === 'plan' ? 'active' : ''}`}
           onClick={() => setSubTab('plan')}
         >
-          📋 This Week
+          <Icon name="calendar" size={14} /> This Week
         </button>
         <button 
           className={`sub-tab ${subTab === 'plans' ? 'active' : ''}`}
           onClick={() => setSubTab('plans')}
         >
-          📁 My Plans
+          <Icon name="folder" size={14} /> My Plans
         </button>
         <button 
           className={`sub-tab ${subTab === 'history' ? 'active' : ''}`}
           onClick={() => setSubTab('history')}
         >
-          📊 History
+          <Icon name="chart" size={14} /> History
         </button>
       </div>
 
@@ -133,7 +157,7 @@ function GymPlanSection({ plansHook }) {
   const { activePlan, updateActivePlanWorkouts } = plansHook;
   const workouts = activePlan.workouts;
   
-  const { submitWorkout, getThisWeekCompletedDays } = useWorkoutHistory();
+  const { submitWorkout, getThisWeekCompletedDays, deleteEntry, getWeekWorkouts } = useWorkoutHistory();
   const [selectedDay, setSelectedDay] = useState(getCurrentDay());
   const [editingExercise, setEditingExercise] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -222,13 +246,13 @@ function GymPlanSection({ plansHook }) {
 
   // Different color tones for each day
   const dayColors = {
-    Sunday: '#ff6b35',    // sunset-orange
-    Monday: '#ff8c61',    // sunset-coral
-    Tuesday: '#ffb088',    // sunset-peach
-    Wednesday: '#ff5e78',  // sunset-pink
-    Thursday: '#e8457c',   // sunset-magenta
-    Friday: '#c73866',    // sunset-deep
-    Saturday: '#ffb347',  // gold
+    Sunday: 'var(--dot-sunday)',
+    Monday: 'var(--dot-monday)',
+    Tuesday: 'var(--dot-tuesday)',
+    Wednesday: 'var(--dot-wednesday)',
+    Thursday: 'var(--dot-thursday)',
+    Friday: 'var(--dot-friday)',
+    Saturday: 'var(--dot-saturday)',
   };
 
   const handleSubmitWorkout = () => {
@@ -236,6 +260,14 @@ function GymPlanSection({ plansHook }) {
     submitWorkout(selectedDay, currentDayData);
     setJustSubmitted(true);
     setTimeout(() => setJustSubmitted(false), 3000);
+  };
+
+  const handleUndoWorkoutLog = () => {
+    const thisWeek = getWeekWorkouts(0);
+    const todayEntry = thisWeek.find(entry => entry.dayOfWeek === selectedDay);
+    if (todayEntry) {
+      deleteEntry(todayEntry.id);
+    }
   };
 
   return (
@@ -251,13 +283,14 @@ function GymPlanSection({ plansHook }) {
               onClick={() => setSelectedDay(day)}
             >
               <span className="day-short">{day.slice(0, 3)}</span>
-              {hasExercises && (
+              {completedDays.includes(day) ? (
+                <span className="completed-indicator">★</span>
+              ) : hasExercises && (
                 <span 
                   className="day-indicator workout-indicator"
                   style={{ background: dayColors[day] }}
                 ></span>
               )}
-              {completedDays.includes(day) && <span className="completed-indicator">✓</span>}
             </button>
           );
         })}
@@ -268,6 +301,26 @@ function GymPlanSection({ plansHook }) {
           <div className="day-header-top">
             <div className="day-title">
               <h2>{selectedDay}</h2>
+              {currentDayData.exercises.length > 0 && !editingWorkoutName && (
+                currentDayData.name && currentDayData.name !== 'Rest Day' ? (
+                  <span 
+                    className="workout-name-badge" 
+                    style={{ background: dayColors[selectedDay] }}
+                    onClick={startEditingWorkoutName}
+                    title="Click to edit name"
+                  >
+                    {currentDayData.name}
+                    <span className="badge-edit-icon">✎</span>
+                  </span>
+                ) : (
+                  <span 
+                    className="workout-name-badge-placeholder" 
+                    onClick={startEditingWorkoutName}
+                  >
+                    + Add name
+                  </span>
+                )
+              )}
             </div>
             {currentDayData.exercises.length > 0 && (
               <div className="day-stats">
@@ -284,50 +337,34 @@ function GymPlanSection({ plansHook }) {
               </div>
             )}
           </div>
-          {currentDayData.exercises.length > 0 && (
+          {editingWorkoutName === selectedDay && (
             <div className="workout-name-row">
-              {editingWorkoutName === selectedDay ? (
-                <>
-                  <input
-                    type="text"
-                    className="workout-name-input editing"
-                    value={tempWorkoutName}
-                    onChange={(e) => setTempWorkoutName(e.target.value)}
-                    placeholder="Workout name..."
-                    autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') saveWorkoutName();
-                      if (e.key === 'Escape') cancelEditingWorkoutName();
-                    }}
-                  />
-                  <button className="btn btn-save-name" onClick={saveWorkoutName}>
-                    Save
-                  </button>
-                  <button className="btn btn-cancel-name" onClick={cancelEditingWorkoutName}>
-                    ✕
-                  </button>
-                </>
-              ) : (
-                <>
-                  <span className="workout-name-display" onClick={startEditingWorkoutName}>
-                    {currentDayData.name || 'Click to add workout name...'}
-                  </span>
-                  <button className="btn btn-edit-name" onClick={startEditingWorkoutName}>
-                    Edit
-                  </button>
-                </>
-              )}
+              <input
+                type="text"
+                className="workout-name-input editing"
+                value={tempWorkoutName}
+                onChange={(e) => setTempWorkoutName(e.target.value)}
+                placeholder="Workout name..."
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') saveWorkoutName();
+                  if (e.key === 'Escape') cancelEditingWorkoutName();
+                }}
+              />
+              <button className="btn btn-save-name" onClick={saveWorkoutName}>
+                Save
+              </button>
+              <button className="btn btn-cancel-name" onClick={cancelEditingWorkoutName}>
+                ✕
+              </button>
             </div>
           )}
         </div>
 
         {currentDayData.exercises.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">{REST_DAY_EMOJIS[selectedDay] || '😴'}</div>
-            <h3>Rest Day</h3>
-            <p>Rest is part of the journey. Take it easy! 💪</p>
             <button className="btn btn-primary" onClick={() => setShowAddForm(true)}>
-              Add Workout Anyway
+              Add Workout
             </button>
           </div>
         ) : (
@@ -353,8 +390,15 @@ function GymPlanSection({ plansHook }) {
             <div className="submit-workout-section">
               {justSubmitted ? (
                 <div className="submit-success">
-                  <span>✨</span> Workout logged! You're crushing it! <span>💪</span>
+                  <Icon name="sparkle" size={16} /> Workout logged! You're crushing it! <Icon name="dumbbell" size={16} />
                 </div>
+              ) : isCompletedToday ? (
+                <button 
+                  className="btn btn-undo-log"
+                  onClick={handleUndoWorkoutLog}
+                >
+                  Undo Log
+                </button>
               ) : (
                 <button 
                   className="btn btn-submit-workout"
@@ -362,9 +406,6 @@ function GymPlanSection({ plansHook }) {
                 >
                   <span>✓</span> Log Today's Workout
                 </button>
-              )}
-              {isCompletedToday && !justSubmitted && (
-                <p className="already-completed">You've already logged a workout for {selectedDay} this week! 🎉</p>
               )}
             </div>
           </>
@@ -444,22 +485,33 @@ function GymPlansSection({ plansHook }) {
         </div>
 
         <div className="plans-list">
-          {plans.map(plan => (
+          {plans.map((plan, index) => (
             <div 
               key={plan.id} 
               className={`plan-card ${plan.id === activePlanId ? 'active' : ''}`}
+              style={{ '--plan-accent': `var(--plan-color-${index % 8})`, '--plan-bg': `var(--plan-bg-${index % 8})` }}
             >
               <div className="plan-card-header">
                 {editingPlanId === plan.id ? (
-                  <input
-                    type="text"
-                    className="plan-name-input"
-                    value={editingName}
-                    onChange={(e) => setEditingName(e.target.value)}
-                    onBlur={handleSaveRename}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSaveRename()}
-                    autoFocus
-                  />
+                  <div className="plan-name-edit-row">
+                    <input
+                      type="text"
+                      className="plan-name-input"
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSaveRename();
+                        if (e.key === 'Escape') { setEditingPlanId(null); setEditingName(''); }
+                      }}
+                      autoFocus
+                    />
+                    <button className="btn btn-save-name" onClick={handleSaveRename}>
+                      Save
+                    </button>
+                    <button className="btn btn-cancel-name" onClick={() => { setEditingPlanId(null); setEditingName(''); }}>
+                      ✕
+                    </button>
+                  </div>
                 ) : (
                   <h3 className="plan-name">{plan.name}</h3>
                 )}
@@ -631,7 +683,7 @@ function GymHistorySection() {
         {comparison.insights && comparison.insights.length > 0 && (
           <div className="weekly-insights">
             <div className="insights-header">
-              <h3>📊 Weekly Insights</h3>
+              <h3><Icon name="chart" size={18} /> Weekly Insights</h3>
               {comparison.previous.totalWorkouts > 0 && (
                 <span className="insights-subtitle">vs. Last Week</span>
               )}
@@ -696,7 +748,7 @@ function GymHistorySection() {
         {/* Progress Graph */}
         {history.length > 0 && (
           <div className="progress-graph-section">
-            <h3>📈 Volume Progress</h3>
+            <h3><Icon name="trendUp" size={18} /> Volume Progress</h3>
             <p className="graph-subtitle">Weekly total volume (kg) over time</p>
             
             <div className="volume-graph">
@@ -746,7 +798,7 @@ function GymHistorySection() {
 
         {weekWorkouts.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">📊</div>
+            <div className="empty-icon"><Icon name="chart" size={48} /></div>
             <h3>No Workouts Yet</h3>
             <p>Complete and submit workouts to see your history here!</p>
           </div>
@@ -906,29 +958,22 @@ function RunningSection() {
 
   return (
     <>
-      <div className="sub-tabs triple">
+      <div className="sub-tabs">
         <button 
           className={`sub-tab ${subTab === 'plan' ? 'active' : ''}`}
           onClick={() => setSubTab('plan')}
         >
-          📅 Weekly Plan
-        </button>
-        <button 
-          className={`sub-tab ${subTab === 'log' ? 'active' : ''}`}
-          onClick={() => setSubTab('log')}
-        >
-          📝 Run Log
+          <Icon name="calendar" size={14} /> Weekly Plan
         </button>
         <button 
           className={`sub-tab ${subTab === 'history' ? 'active' : ''}`}
           onClick={() => setSubTab('history')}
         >
-          📊 History
+          <Icon name="chart" size={14} /> History
         </button>
       </div>
 
       {subTab === 'plan' && <RunPlanSection />}
-      {subTab === 'log' && <RunLogSection />}
       {subTab === 'history' && <RunHistorySection />}
     </>
   );
@@ -936,7 +981,7 @@ function RunningSection() {
 
 function RunPlanSection() {
   const { runPlan, updateDay, updateSegments, resetToDefault } = useRunPlan();
-  const { submitRun, getThisWeekCompletedDays } = useRunHistory();
+  const { submitRun, getThisWeekCompletedDays, deleteEntry, getWeekRuns } = useRunHistory();
   const [selectedDay, setSelectedDay] = useState(getCurrentDay());
   const [isEditing, setIsEditing] = useState(false);
   const [isLogging, setIsLogging] = useState(false);
@@ -966,6 +1011,14 @@ function RunPlanSection() {
   const weeklyDistance = Object.values(runPlan).reduce((sum, day) => day.type !== 'rest' ? sum + (day.distance || 0) : sum, 0);
   const runDays = Object.values(runPlan).filter(day => day.type !== 'rest').length;
 
+  const handleUndoRunLog = () => {
+    const thisWeek = getWeekRuns(0);
+    const todayEntry = thisWeek.find(entry => entry.dayOfWeek === selectedDay);
+    if (todayEntry) {
+      deleteEntry(todayEntry.id);
+    }
+  };
+
   const handleSubmitRun = (logData) => {
     if (currentDayData.type === 'rest') return;
     submitRun(selectedDay, currentDayData, logData);
@@ -978,7 +1031,7 @@ function RunPlanSection() {
     <>
       {showSaveWarning && (
         <div className="save-warning">
-          <span className="warning-icon">⚠️</span>
+          <span className="warning-icon"><Icon name="warning" size={16} /></span>
           Please save or cancel your edits first
         </div>
       )}
@@ -991,14 +1044,15 @@ function RunPlanSection() {
               key={day}
               className={`day-btn ${selectedDay === day ? 'active' : ''} ${day === getCurrentDay() ? 'today' : ''}`}
               onClick={() => handleDayChange(day)}
-              style={{ '--day-color': dayType.color }}
+              style={{ '--day-color': `var(--run-${dayData.type || 'rest'})` }}
             >
               <span className="day-short">{day.slice(0, 3)}</span>
               <span className="day-full">{day}</span>
-              {dayData.type !== 'rest' && (
-                <span className="day-indicator" style={{ background: dayType.color }}></span>
+              {completedDays.includes(day) ? (
+                <span className="completed-indicator">★</span>
+              ) : dayData.type !== 'rest' && (
+                <span className="day-indicator" style={{ background: `var(--run-${dayData.type || 'rest'})` }}></span>
               )}
-              {completedDays.includes(day) && <span className="completed-indicator">✓</span>}
             </button>
           );
         })}
@@ -1009,21 +1063,23 @@ function RunPlanSection() {
           <div className="day-title">
             <h2>{selectedDay}</h2>
             {currentDayData.type !== 'rest' && (
-              <span className="run-type-badge" style={{ background: runType.color }}>
+              <span className="run-type-badge" style={{ background: `var(--run-${currentDayData.type || 'rest'})` }}>
                 {currentDayData.type === 'other' && currentDayData.customType ? currentDayData.customType : runType.label}
               </span>
             )}
           </div>
-          <div className="day-stats">
-            <div className="stat">
-              <span className="stat-value">{weeklyDistance}</span>
-              <span className="stat-label">Weekly KM</span>
+          {runDays > 0 && (
+            <div className="day-stats">
+              <div className="stat">
+                <span className="stat-value">{weeklyDistance}</span>
+                <span className="stat-label">Weekly KM</span>
+              </div>
+              <div className="stat">
+                <span className="stat-value">{runDays}</span>
+                <span className="stat-label">Run Days</span>
+              </div>
             </div>
-            <div className="stat">
-              <span className="stat-value">{runDays}</span>
-              <span className="stat-label">Run Days</span>
-            </div>
-          </div>
+          )}
         </div>
 
         {isEditing ? (
@@ -1060,6 +1116,7 @@ function RunPlanSection() {
               });
             }}
             onSubmit={() => setIsLogging(true)}
+            onUndoLog={handleUndoRunLog}
             justSubmitted={justSubmitted}
             isCompletedToday={isCompletedToday}
           />
@@ -1070,15 +1127,12 @@ function RunPlanSection() {
   );
 }
 
-function RunPlanDisplay({ day, data, onEdit, onRestDay, onSubmit, justSubmitted, isCompletedToday }) {
+function RunPlanDisplay({ day, data, onEdit, onRestDay, onSubmit, onUndoLog, justSubmitted, isCompletedToday }) {
   const runType = RUN_TYPES[data.type] || RUN_TYPES.easy;
 
   if (data.type === 'rest') {
     return (
       <div className="empty-state">
-        <div className="empty-icon">{REST_DAY_EMOJIS[day] || '😴'}</div>
-        <h3>Rest Day</h3>
-        <p>Recovery is part of the process 🔄</p>
         <button className="btn btn-primary" onClick={onEdit}>
           Add a Run
         </button>
@@ -1131,8 +1185,15 @@ function RunPlanDisplay({ day, data, onEdit, onRestDay, onSubmit, justSubmitted,
       <div className="submit-run-section">
         {justSubmitted ? (
           <div className="submit-success">
-            <span>✨</span> Run logged! You're on fire! <span>🔥</span>
+            <Icon name="sparkle" size={16} /> Run logged! You're on fire! <Icon name="fire" size={16} />
           </div>
+        ) : isCompletedToday ? (
+          <button 
+            className="btn btn-undo-log"
+            onClick={onUndoLog}
+          >
+            Undo Log
+          </button>
         ) : (
           <button 
             className="btn btn-submit-workout"
@@ -1140,9 +1201,6 @@ function RunPlanDisplay({ day, data, onEdit, onRestDay, onSubmit, justSubmitted,
           >
             <span>✓</span> Log This Run
           </button>
-        )}
-        {isCompletedToday && !justSubmitted && (
-          <p className="already-completed">You've already logged a run for this day this week! 🎉</p>
         )}
       </div>
 
@@ -1201,7 +1259,7 @@ function RunLogForm({ day, data, onSubmit, onCancel }) {
     <div className="run-log-form">
       <div className="run-log-header">
         <h3>Log Your Run</h3>
-        <span className="run-type-badge" style={{ background: runType.color }}>
+        <span className="run-type-badge" style={{ background: `var(--run-${data.type || 'rest'})` }}>
           {data.name}
         </span>
       </div>
@@ -1254,10 +1312,10 @@ function RunLogForm({ day, data, onSubmit, onCancel }) {
           <label>How did it feel?</label>
           <div className="feeling-options">
             {[
-              { value: 'great', label: '💪 Great', desc: 'Crushed it!' },
-              { value: 'good', label: '😊 Good', desc: 'Solid effort' },
-              { value: 'tough', label: '😤 Tough', desc: 'Pushed through' },
-              { value: 'struggled', label: '😓 Struggled', desc: 'Hard day' }
+              { value: 'great', label: 'Great', desc: 'Crushed it!' },
+              { value: 'good', label: 'Good', desc: 'Solid effort' },
+              { value: 'tough', label: 'Tough', desc: 'Pushed through' },
+              { value: 'struggled', label: 'Struggled', desc: 'Hard day' }
             ].map(option => (
               <button
                 key={option.value}
@@ -1403,7 +1461,7 @@ function RunPlanEditor({ day, data, onSave, onCancel }) {
 
       <div className="segments-editor">
         <div className="segments-editor-header">
-          <h4>🔄 Workout Segments</h4>
+          <h4><Icon name="segments" size={16} /> Workout Segments</h4>
           <button type="button" className="btn btn-small btn-ghost" onClick={addSegment}>
             + Add Segment
           </button>
@@ -1499,7 +1557,7 @@ function RunLogSection() {
 
         {!showAddForm && (
           <button className="add-run-btn" onClick={() => setShowAddForm(true)}>
-            <span>+</span> Log Your Run 🏃
+            <Icon name="plus" size={14} /> Log Your Run
           </button>
         )}
 
@@ -1515,11 +1573,11 @@ function RunLogSection() {
 
         {runs.length === 0 && !showAddForm ? (
           <div className="empty-state">
-            <div className="empty-icon">🏃‍♀️</div>
+            <div className="empty-icon"><Icon name="running" size={48} /></div>
             <h3>Ready to Run?</h3>
-            <p>Log your runs here and watch your progress grow! 📈</p>
+            <p>Log your runs here and watch your progress grow!</p>
             <button className="btn btn-primary" onClick={() => setShowAddForm(true)}>
-              Log Your First Run 🏃
+              Log Your First Run
             </button>
           </div>
         ) : (
@@ -1606,7 +1664,7 @@ function RunHistorySection() {
         {comparison.insights && comparison.insights.length > 0 && (
           <div className="weekly-insights">
             <div className="insights-header">
-              <h3>📊 Weekly Insights</h3>
+              <h3><Icon name="chart" size={18} /> Weekly Insights</h3>
               {comparison.previous.totalRuns > 0 && (
                 <span className="insights-subtitle">vs. Last Week</span>
               )}
@@ -1697,7 +1755,7 @@ function RunHistorySection() {
 
         {weekRuns.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">🏃‍♀️</div>
+            <div className="empty-icon"><Icon name="running" size={48} /></div>
             <h3>No Runs Yet</h3>
             <p>Complete runs from your weekly plan to see your history here!</p>
           </div>
@@ -1744,10 +1802,10 @@ function RunHistorySection() {
                       <div className="run-detail">
                         <span className="detail-label">Feeling</span>
                         <span className="detail-value feeling-value">
-                          {entry.feeling === 'great' && '💪 Great'}
-                          {entry.feeling === 'good' && '😊 Good'}
-                          {entry.feeling === 'tough' && '😤 Tough'}
-                          {entry.feeling === 'struggled' && '😓 Struggled'}
+                          {entry.feeling === 'great' && 'Great'}
+                          {entry.feeling === 'good' && 'Good'}
+                          {entry.feeling === 'tough' && 'Tough'}
+                          {entry.feeling === 'struggled' && 'Struggled'}
                         </span>
                       </div>
                     </div>
@@ -1845,12 +1903,12 @@ function RunHistorySection() {
                           <div className="comparison-changes">
                             {paceChange !== null && paceChange !== 0 && (
                               <span className={`change-badge ${paceChange > 0 ? 'positive' : 'negative'}`}>
-                                {paceChange > 0 ? '⚡' : '🐢'} {Math.abs(paceChange * 60).toFixed(0)}s {paceChange > 0 ? 'faster' : 'slower'}
+                                <Icon name={paceChange > 0 ? 'bolt' : 'turtle'} size={12} /> {Math.abs(paceChange * 60).toFixed(0)}s {paceChange > 0 ? 'faster' : 'slower'}
                               </span>
                             )}
                             {hrChange !== null && hrChange !== 0 && (
                               <span className={`change-badge ${hrChange < 0 ? 'positive' : 'neutral'}`}>
-                                ❤️ {hrChange > 0 ? '+' : ''}{hrChange} bpm
+                                <Icon name="heart" size={12} /> {hrChange > 0 ? '+' : ''}{hrChange} bpm
                               </span>
                             )}
                           </div>
@@ -1922,7 +1980,7 @@ function SplitsEditor({ splits, onChange }) {
   return (
     <div className="splits-editor">
       <div className="splits-header">
-        <h4>📊 Kilometer Splits</h4>
+        <h4><Icon name="chart" size={16} /> Kilometer Splits</h4>
         <button type="button" className="btn btn-small btn-ghost" onClick={addSplit}>
           + Add Split
         </button>
@@ -1985,7 +2043,7 @@ function SplitsDisplay({ splits }) {
 
   return (
     <div className="splits-display">
-      <h4 className="splits-title">📊 Splits</h4>
+      <h4 className="splits-title"><Icon name="chart" size={16} /> Splits</h4>
       <div className="splits-grid">
         {splits.map((split, index) => (
           <div key={index} className="split-card">
@@ -2005,7 +2063,7 @@ function SplitsDisplay({ splits }) {
               )}
               {split.heartRate && (
                 <span className="split-stat hr">
-                  <span className="split-stat-value">❤️ {split.heartRate}</span>
+                  <span className="split-stat-value"><Icon name="heart" size={12} /> {split.heartRate}</span>
                 </span>
               )}
             </div>
@@ -2154,14 +2212,14 @@ function RunCard({ run, index, isEditing, onEdit, onSave, onCancel, onDelete }) 
       <div className="run-secondary-stats">
         {run.avgHeartRate > 0 && (
           <div className="run-mini-stat">
-            <span className="heart-icon">❤️</span>
+            <span className="heart-icon"><Icon name="heart" size={14} /></span>
             <span>{run.avgHeartRate} avg</span>
             {run.maxHeartRate > 0 && <span className="max-hr">/ {run.maxHeartRate} max</span>}
           </div>
         )}
         {run.calories > 0 && (
           <div className="run-mini-stat">
-            <span className="fire-icon">🔥</span>
+            <span className="fire-icon"><Icon name="fire" size={14} /></span>
             <span>{run.calories} cal</span>
           </div>
         )}
@@ -2218,7 +2276,7 @@ function AddRunForm({ onAdd, onCancel }) {
 
   return (
     <form className="add-form run-form" onSubmit={handleSubmit}>
-      <h3>🏃‍♀️ Log Your Run</h3>
+      <h3><Icon name="running" size={20} /> Log Your Run</h3>
       <div className="run-form-grid">
         <div className="edit-field">
           <label>Date</label>
@@ -2433,7 +2491,7 @@ function AddExerciseForm({ onAdd, onCancel }) {
 
   return (
     <form className="add-form" onSubmit={handleSubmit}>
-      <h3>💪 Add New Exercise</h3>
+      <h3><Icon name="dumbbell" size={20} /> Add New Exercise</h3>
       <input
         type="text"
         className="edit-input edit-name"

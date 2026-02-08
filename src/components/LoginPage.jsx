@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import PrivacyPolicy from './PrivacyPolicy';
 import TermsAndConditions from './TermsAndConditions';
+import Icon from './Icons';
 
 export default function LoginPage() {
   const [legalPage, setLegalPage] = useState(null);
@@ -11,6 +12,15 @@ export default function LoginPage() {
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('fitty-dark-mode');
+    return saved === 'true';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+    localStorage.setItem('fitty-dark-mode', darkMode);
+  }, [darkMode]);
 
   const { signup, login, loginWithGoogle, loginWithApple } = useAuth();
 
@@ -74,6 +84,24 @@ export default function LoginPage() {
 
   return (
     <div className="login-page">
+      <div className="wave-bg">
+        <svg className="wave wave-1" viewBox="0 0 3000 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0,100 C250,80 500,120 750,100 S1250,80 1500,100 S2000,120 2250,100 S2750,80 3000,100 L3000,200 L0,200 Z" fill="var(--wave-color-1)" />
+        </svg>
+        <svg className="wave wave-2" viewBox="0 0 3000 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0,110 C300,90 600,130 900,110 S1500,90 1800,110 S2400,130 2700,110 S2850,95 3000,105 L3000,200 L0,200 Z" fill="var(--wave-color-2)" />
+        </svg>
+        <svg className="wave wave-3" viewBox="0 0 3000 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0,95 C200,115 500,85 750,105 S1250,120 1500,95 S2000,85 2250,105 S2750,115 3000,95 L3000,200 L0,200 Z" fill="var(--wave-color-3)" />
+        </svg>
+      </div>
+      <button
+        className="login-theme-toggle"
+        onClick={() => setDarkMode(prev => !prev)}
+        title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+      >
+        {darkMode ? <Icon name="sun" size={20} /> : <Icon name="moon" size={20} />}
+      </button>
       <div className="login-container">
         <div className="login-header">
           <div className="login-logo">
@@ -87,7 +115,7 @@ export default function LoginPage() {
               <span className="star">✦</span>
             </div>
           </div>
-          <p className="login-tagline">Your fitness journey starts here 💪</p>
+          <p className="login-tagline">Your fitness journey starts here</p>
         </div>
 
         <div className="login-tabs">

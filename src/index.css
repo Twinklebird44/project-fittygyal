@@ -1,39 +1,216 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Pacifico&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Righteous&family=Quicksand:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Sunset palette */
-  --sunset-orange: #ff6b35;
-  --sunset-coral: #ff8c61;
-  --sunset-peach: #ffb088;
-  --sunset-pink: #ff5e78;
-  --sunset-magenta: #e8457c;
-  --sunset-deep: #c73866;
-  --sunset-purple: #9b4d96;
+  /* Retro Sunset palette */
+  --sunset-orange: #e8723a;
+  --sunset-coral: #f09c6b;
+  --sunset-peach: #f5c49c;
+  --sunset-pink: #e85d5d;
+  --sunset-magenta: #c94a5a;
+  --sunset-deep: #a83a4a;
+  --sunset-purple: #8b4573;
   
-  /* Backgrounds */
-  --bg-primary: #fff8f5;
-  --bg-secondary: #fff0eb;
-  --bg-card: #ffffff;
-  --bg-card-hover: #fffaf8;
+  /* Warm retro backgrounds */
+  --bg-primary: #fdf6ef;
+  --bg-secondary: #faeee4;
+  --bg-card: #fffcf8;
+  --bg-card-hover: #fff7f0;
   
   /* Main accents */
-  --accent: #ff6b35;
-  --accent-pink: #ff5e78;
-  --accent-glow: rgba(255, 107, 53, 0.2);
+  --accent: #e8723a;
+  --accent-pink: #e85d5d;
+  --accent-glow: rgba(232, 114, 58, 0.2);
   
-  /* Warm neutrals */
-  --gold: #ffb347;
-  --gold-light: #ffd089;
+  /* Golden tones */
+  --gold: #e8a840;
+  --gold-light: #f5cc6a;
   
-  /* Text colors */
-  --text-primary: #3d2c2c;
-  --text-secondary: #6b5252;
-  --text-muted: #9a8585;
+  /* Text colors - warmer */
+  --text-primary: #3a2e28;
+  --text-secondary: #6b5a50;
+  --text-muted: #9a887c;
   
   /* Utilities */
-  --border: #ffe4db;
+  --border: #f0ddd0;
   --success: #6bba7a;
-  --danger: #ff5e78;
+  --danger: #e85d5d;
+  --today-dot: #7ab87a;
+
+  /* Gradient endpoints (used in CSS) */
+  --gradient-from: var(--sunset-orange);
+  --gradient-to: var(--gold);
+  --glow-color: rgba(232, 168, 64, 0.3);
+  --glow-color-soft: rgba(200, 140, 80, 0.08);
+  --bg-gradient-top: #fdf6ef;
+  --bg-gradient-mid: #faeee4;
+  --bg-gradient-bottom: #f5e4d4;
+  --bg-radial-1: rgba(232, 114, 58, 0.1);
+  --bg-radial-2: rgba(232, 168, 64, 0.08);
+  --bg-radial-3: rgba(245, 196, 156, 0.12);
+
+  /* Wave pattern */
+  --wave-opacity: 0.05;
+  --wave-opacity-2: 0.035;
+  --wave-opacity-3: 0.025;
+  --wave-color-1: #d4622a;
+  --wave-color-2: #c48820;
+  --wave-color-3: #b87830;
+
+  /* Workout day dots – warm oranges & yellows */
+  --dot-sunday: #E85D2C;
+  --dot-monday: #F7A832;
+  --dot-tuesday: #E8742E;
+  --dot-wednesday: #F5C842;
+  --dot-thursday: #D4592A;
+  --dot-friday: #F0B840;
+  --dot-saturday: #EDDA4A;
+
+  /* Plan accent colors – distinct oranges & yellows for light mode */
+  --plan-color-0: #E87830;
+  --plan-color-1: #E8A830;
+  --plan-color-2: #D45828;
+  --plan-color-3: #B89020;
+  --plan-color-4: #CC6820;
+  --plan-color-5: #A88A18;
+  --plan-color-6: #D46E28;
+  --plan-color-7: #C08010;
+
+  /* Plan preview backgrounds – soft tinted for light mode */
+  --plan-bg-0: #FFF0E6;
+  --plan-bg-1: #FFF7E3;
+  --plan-bg-2: #FFECE4;
+  --plan-bg-3: #FFFAE6;
+  --plan-bg-4: #FFF2E0;
+  --plan-bg-5: #FFFCE8;
+  --plan-bg-6: #FFEEE2;
+  --plan-bg-7: #FFF4DE;
+
+  /* Run type dots – distinct oranges & yellows for light mode */
+  --run-other: #CC7030;
+  --run-easy: #E89838;
+  --run-intervals: #D46428;
+  --run-tempo: #F0B040;
+  --run-long: #E87830;
+  --run-fartlek: #F5C848;
+  --run-hill: #C85820;
+  --run-progression: #E8A838;
+  --run-sprint: #D04820;
+  --run-short: #F0C038;
+  --run-trail: #B86828;
+  --run-treadmill: #E8B848;
+  --run-warmup: #F5D850;
+  --run-cooldown: #E8C040;
+  --run-threshold: #D85828;
+  --run-recovery: #EDD050;
+  --run-race: #E06830;
+  --run-rest: #E0C858;
+}
+
+/* ==================== DARK MODE ==================== */
+[data-theme="dark"] {
+  /* Midnight blues & purples */
+  --sunset-orange: #7c8cf5;
+  --sunset-coral: #9ba6f7;
+  --sunset-peach: #3d4472;
+  --sunset-pink: #a78bfa;
+  --sunset-magenta: #8b5cf6;
+  --sunset-deep: #c4b5fd;
+  --sunset-purple: #7c3aed;
+
+  /* Dark backgrounds */
+  --bg-primary: #0f1129;
+  --bg-secondary: #171a3a;
+  --bg-card: #1c2042;
+  --bg-card-hover: #222650;
+
+  /* Accents */
+  --accent: #7c8cf5;
+  --accent-pink: #a78bfa;
+  --accent-glow: rgba(124, 140, 245, 0.1);
+
+  /* Cool blues/purples */
+  --gold: #a78bfa;
+  --gold-light: #c4b5fd;
+
+  /* Text colors - light on dark */
+  --text-primary: #e8eaf6;
+  --text-secondary: #a8adc6;
+  --text-muted: #6e749a;
+
+  /* Utilities */
+  --border: #2a2f54;
+  --success: #6bba7a;
+  --danger: #9333ea;
+  --today-dot: #6ee7a0;
+
+  /* Gradient endpoints */
+  --gradient-from: #7c8cf5;
+  --gradient-to: #a78bfa;
+  --glow-color: rgba(167, 139, 250, 0.15);
+  --glow-color-soft: rgba(124, 140, 245, 0.04);
+  --bg-gradient-top: #0f1129;
+  --bg-gradient-mid: #131636;
+  --bg-gradient-bottom: #171a3a;
+  --bg-radial-1: rgba(124, 140, 245, 0.04);
+  --bg-radial-2: rgba(167, 139, 250, 0.03);
+  --bg-radial-3: rgba(99, 102, 241, 0.04);
+
+  /* Wave pattern */
+  --wave-opacity: 0.05;
+  --wave-opacity-2: 0.035;
+  --wave-opacity-3: 0.025;
+  --wave-color-1: #7c8cf5;
+  --wave-color-2: #a78bfa;
+  --wave-color-3: #9ba6f7;
+
+  /* Workout day dots – distinct purples & blues for dark mode */
+  --dot-sunday: #6C5CE7;
+  --dot-monday: #5B9BF7;
+  --dot-tuesday: #A855F7;
+  --dot-wednesday: #38BDF8;
+  --dot-thursday: #C084FC;
+  --dot-friday: #818CF8;
+  --dot-saturday: #7DD3FC;
+
+  /* Plan accent colors – distinct blues & purples for dark mode */
+  --plan-color-0: #7C8CF5;
+  --plan-color-1: #A855F7;
+  --plan-color-2: #5B9BF7;
+  --plan-color-3: #C084FC;
+  --plan-color-4: #38BDF8;
+  --plan-color-5: #818CF8;
+  --plan-color-6: #6C5CE7;
+  --plan-color-7: #7DD3FC;
+
+  /* Plan preview backgrounds – soft tinted for dark mode */
+  --plan-bg-0: rgba(124, 140, 245, 0.1);
+  --plan-bg-1: rgba(168, 85, 247, 0.1);
+  --plan-bg-2: rgba(91, 155, 247, 0.1);
+  --plan-bg-3: rgba(192, 132, 252, 0.1);
+  --plan-bg-4: rgba(56, 189, 248, 0.1);
+  --plan-bg-5: rgba(129, 140, 248, 0.1);
+  --plan-bg-6: rgba(108, 92, 231, 0.1);
+  --plan-bg-7: rgba(125, 211, 252, 0.1);
+
+  /* Run type dots – distinct blues & purples for dark mode */
+  --run-other: #7B8CF0;
+  --run-easy: #58B0F0;
+  --run-intervals: #A060E8;
+  --run-tempo: #6C9CF5;
+  --run-long: #8B60F5;
+  --run-fartlek: #50C8F0;
+  --run-hill: #7060E0;
+  --run-progression: #60B8F0;
+  --run-sprint: #C060E0;
+  --run-short: #78D8F5;
+  --run-trail: #6870E0;
+  --run-treadmill: #90A0F0;
+  --run-warmup: #A8C0F8;
+  --run-cooldown: #58D0F5;
+  --run-threshold: #D068E0;
+  --run-recovery: #80D8F0;
+  --run-race: #9850F0;
+  --run-rest: #A0B0E8;
 }
 
 * {
@@ -47,7 +224,7 @@ html {
 }
 
 body {
-  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
@@ -62,10 +239,10 @@ body::before {
   right: 0;
   bottom: 0;
   background: 
-    radial-gradient(ellipse at 0% 0%, rgba(255, 107, 53, 0.12) 0%, transparent 50%),
-    radial-gradient(ellipse at 100% 0%, rgba(255, 94, 120, 0.1) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 100%, rgba(255, 179, 71, 0.08) 0%, transparent 50%),
-    linear-gradient(180deg, #fff8f5 0%, #fff0eb 50%, #ffe8e0 100%);
+    radial-gradient(ellipse at 0% 0%, var(--bg-radial-1) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 0%, var(--bg-radial-2) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, var(--bg-radial-3) 0%, transparent 50%),
+    linear-gradient(180deg, var(--bg-gradient-top) 0%, var(--bg-gradient-mid) 50%, var(--bg-gradient-bottom) 100%);
   pointer-events: none;
   z-index: 0;
 }
@@ -73,6 +250,78 @@ body::before {
 #root {
   position: relative;
   z-index: 1;
+}
+
+/* Subtle slow-moving wave overlay */
+.wave-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Wave SVGs */
+.wave-bg .wave {
+  position: absolute;
+  left: -10%;
+  width: 220%;
+  height: 50vh;
+}
+
+.wave-bg .wave-1 {
+  bottom: -20%;
+  animation: waveSlide 30s ease-in-out infinite alternate;
+  opacity: var(--wave-opacity, 0.05);
+}
+
+.wave-bg .wave-2 {
+  top: -20%;
+  transform: scaleY(-1);
+  animation: waveSlide2 38s ease-in-out infinite alternate;
+  opacity: var(--wave-opacity-2, 0.035);
+}
+
+.wave-bg .wave-3 {
+  top: 30%;
+  animation: waveSlide3 44s ease-in-out infinite alternate;
+  opacity: var(--wave-opacity-3, 0.025);
+}
+
+[data-theme="dark"] .wave-bg .wave-3 {
+  opacity: 0;
+}
+
+@keyframes waveSlide {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-15%); }
+}
+
+@keyframes waveSlide2 {
+  0% { transform: scaleY(-1) translateX(0%); }
+  100% { transform: scaleY(-1) translateX(-12%); }
+}
+
+@keyframes waveSlide3 {
+  0% { transform: translateX(-5%); }
+  100% { transform: translateX(-18%); }
+}
+
+/* Subtle retro grain overlay */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.8;
 }
 
 button {
@@ -93,12 +342,12 @@ input, select {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--sunset-coral), var(--sunset-pink));
+  background: linear-gradient(180deg, var(--sunset-coral), var(--gold));
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, var(--sunset-orange), var(--sunset-magenta));
+  background: linear-gradient(180deg, var(--sunset-orange), var(--sunset-coral));
 }
 
 @keyframes float {
@@ -113,10 +362,10 @@ input, select {
 
 @keyframes sunsetGlow {
   0%, 100% { 
-    box-shadow: 0 4px 20px rgba(255, 107, 53, 0.2);
+    box-shadow: 0 4px 20px var(--glow-color);
   }
   50% { 
-    box-shadow: 0 4px 30px rgba(255, 94, 120, 0.3);
+    box-shadow: 0 4px 30px var(--glow-color);
   }
 }
 
